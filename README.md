@@ -23,7 +23,7 @@ An open-source meta aggregator library that provides all the benefits of DEX agg
 ### Installation
 
 ```bash
-git clone https://github.com/SMSDAO/aggregator.git
+git clone https://github.com/<your-org-or-username>/aggregator.git
 cd aggregator
 npm install
 ```
