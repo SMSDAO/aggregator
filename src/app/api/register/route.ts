@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import type { DeveloperRegistration, ApiKey } from "@/lib";
-
-// WARNING: In-memory store only. All data is lost on server restart.
-// Must be replaced with a persistent database (e.g., PostgreSQL, MongoDB) before production deployment.
-const registrations = new Map<string, ApiKey>();
+import { registrationStore } from "@/lib/store";
 
 function generateApiKey(): string {
   return `agg_${randomBytes(24).toString("hex")}`;
@@ -21,7 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(body.email)) {
       return NextResponse.json(
         { error: "Invalid email address" },
@@ -29,9 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existing = Array.from(registrations.values()).find(
-      (r) => r.email === body.email
-    );
+    const existing = await registrationStore.findByEmail(body.email);
     if (existing) {
       return NextResponse.json(
         { error: "Email already registered" },
@@ -50,7 +45,7 @@ export async function POST(request: NextRequest) {
       plan: "free",
     };
 
-    registrations.set(apiKey.key, apiKey);
+    await registrationStore.save(apiKey);
 
     return NextResponse.json({
       apiKey: apiKey.key,

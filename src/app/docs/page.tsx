@@ -55,17 +55,19 @@ export default function DocsPage() {
           </h2>
           <p className="text-gray-400 mb-4">
             The Meta DEX Aggregator exposes a simple REST API and a TypeScript
-            SDK. Register for a free API key, then start querying best swap
-            quotes across 1inch, 0x Protocol, Paraswap, and Uniswap.
+            SDK. You can register for a free API key for future authenticated
+            and rate-limited access; the public endpoints currently accept
+            requests without authentication.
           </p>
           <ol className="list-decimal list-inside space-y-2 text-gray-300">
             <li>
               <Link href="/register" className="text-indigo-400 underline">
                 Register
               </Link>{" "}
-              to get a free API key.
+              to get a free API key for authenticated access once key-based
+              authorization is enabled.
             </li>
-            <li>Include your key in the <code className="bg-gray-800 px-1 rounded">X-API-Key</code> header.</li>
+            <li>When API key enforcement is enabled, include your key in the <code className="bg-gray-800 px-1 rounded">X-API-Key</code> header.</li>
             <li>Call <code className="bg-gray-800 px-1 rounded">/api/quote</code> to get the best price.</li>
             <li>Use the returned transaction to execute the swap.</li>
           </ol>

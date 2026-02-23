@@ -7,7 +7,7 @@ An open-source meta aggregator library that provides all the benefits of DEX agg
 - **Better Prices** — Indexes liquidity from multiple DEXes (1inch, 0x Protocol, Paraswap, Uniswap) to find the best swap rates.
 - **Reduced Slippage** — Splits trades across multiple DEXes to minimize price impact.
 - **Atomic Swaps** — Supports complex multi-hop routes for tokens without direct liquidity pools.
-- **Flash Loan Aggregator** — Compare flash loan providers (Aave V3, dYdX, Uniswap V3, Balancer) to find the lowest fee. Borrow, execute, and repay in a single transaction with a 0.1% service fee from profit.
+- **Flash Loan Aggregator** — Compare flash loan providers (Aave V3, dYdX, Uniswap V3, Balancer) to find the lowest fee. Borrow, execute, and repay atomically in a single transaction.
 - **Open Source** — Fully open source; inspect, modify, and contribute freely.
 - **No Middlemen** — Interacts directly with DEX aggregators, eliminating centralized intermediaries.
 - **Onchain Simulation** — Simulate swaps onchain before executing to verify accuracy, gas costs, and potential reverts.

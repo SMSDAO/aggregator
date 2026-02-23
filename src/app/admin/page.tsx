@@ -12,7 +12,7 @@ export default function AdminPage() {
   function handleSignOut() {
     setStats(null);
     setToken("");
-    localStorage.removeItem("admin_token");
+    sessionStorage.removeItem("admin_token");
   }
 
   async function fetchStats() {
@@ -37,13 +37,13 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    const saved = localStorage.getItem("admin_token");
+    const saved = sessionStorage.getItem("admin_token");
     if (saved) setToken(saved);
   }, []);
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    localStorage.setItem("admin_token", token);
+    sessionStorage.setItem("admin_token", token);
     fetchStats();
   }
 

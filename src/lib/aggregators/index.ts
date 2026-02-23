@@ -198,6 +198,12 @@ export async function getQuotes(request: QuoteRequest): Promise<BestQuote> {
     throw new Error("No quotes available from any aggregator");
   }
 
+  if (allQuotes.every((q) => q.toAmount === "0")) {
+    throw new Error(
+      "All aggregators returned zero output; the token pair may not be supported"
+    );
+  }
+
   allQuotes.sort((a, b) => {
     const aOut = BigInt(a.toAmount);
     const bOut = BigInt(b.toAmount);

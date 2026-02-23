@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     ],
     recentRegistrations: [
       {
-        key: "agg_xxx",
+        key: "agg_demo_placeholder",
         name: "Alice Chen",
         email: "alice@defi.io",
         projectName: "YieldFarm Pro",
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
         plan: "pro",
       },
       {
-        key: "agg_yyy",
+        key: "agg_demo_placeholder_2",
         name: "Bob Smith",
         email: "bob@web3.dev",
         projectName: "ArbiBot",
@@ -51,5 +51,5 @@ export async function GET(request: NextRequest) {
     ],
   };
 
-  return NextResponse.json(stats);
+  return NextResponse.json({ ...stats, _demo: true });
 }

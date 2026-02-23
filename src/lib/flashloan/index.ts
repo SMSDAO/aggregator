@@ -7,7 +7,8 @@ import type {
 
 interface FlashLoanProvider {
   name: string;
-  feePercent: number;
+  /** Fee expressed in basis points (1 bp = 0.01%). E.g. 5 = 0.05%. */
+  feeBasisPoints: number;
   maxLiquidity: Record<string, string>;
   chainIds: number[];
 }
@@ -15,7 +16,7 @@ interface FlashLoanProvider {
 const FLASH_LOAN_PROVIDERS: FlashLoanProvider[] = [
   {
     name: "Aave V3",
-    feePercent: 0.05,
+    feeBasisPoints: 5,
     chainIds: [1, 10, 137, 42161, 43114, 8453],
     maxLiquidity: {
       "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "500000000000000",
@@ -26,7 +27,7 @@ const FLASH_LOAN_PROVIDERS: FlashLoanProvider[] = [
   },
   {
     name: "dYdX",
-    feePercent: 0.0,
+    feeBasisPoints: 0,
     chainIds: [1],
     maxLiquidity: {
       "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "100000000000000",
@@ -35,13 +36,13 @@ const FLASH_LOAN_PROVIDERS: FlashLoanProvider[] = [
   },
   {
     name: "Uniswap V3",
-    feePercent: 0.05,
+    feeBasisPoints: 5,
     chainIds: [1, 10, 137, 42161, 8453],
     maxLiquidity: {},
   },
   {
     name: "Balancer",
-    feePercent: 0.0,
+    feeBasisPoints: 0,
     chainIds: [1, 137, 42161],
     maxLiquidity: {
       "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "80000000000000",
@@ -58,21 +59,34 @@ const FLASH_LOAN_CONTRACT_ADDRESSES: Record<number, Record<string, string>> = {
     "Uniswap V3": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
     Balancer: "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
   },
-  // Additional chain IDs can be added here as needed, e.g.:
-  // 10: { "Aave V3": "0x...", "Uniswap V3": "0x..." },
-  // 137: { "Aave V3": "0x...", "Uniswap V3": "0x..." },
+  10: {
+    "Aave V3": "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+    "Uniswap V3": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+  },
+  137: {
+    "Aave V3": "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+    "Uniswap V3": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    Balancer: "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+  },
+  42161: {
+    "Aave V3": "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+    "Uniswap V3": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    Balancer: "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+  },
+  43114: {
+    "Aave V3": "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+  },
+  8453: {
+    "Aave V3": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
+    "Uniswap V3": "0x2626664c2603336E57B271c5C0b26F421741e481",
+  },
 };
 
 function buildFlashLoanTransaction(
   provider: FlashLoanProvider,
-  chainId?: number
+  chainId: number
 ): SwapTransaction {
-  const effectiveChainId =
-    chainId ?? provider.chainIds[0] ?? 1;
-
-  const addressesForChain =
-    FLASH_LOAN_CONTRACT_ADDRESSES[effectiveChainId] ?? {};
-
+  const addressesForChain = FLASH_LOAN_CONTRACT_ADDRESSES[chainId] ?? {};
   const to =
     addressesForChain[provider.name] ??
     "0x0000000000000000000000000000000000000000";
@@ -103,10 +117,10 @@ export async function getFlashLoanQuotes(
 
   const results: FlashLoanResult[] = availableProviders.map((provider) => {
     const amountBig = BigInt(request.amount);
+    // Use integer basis-point arithmetic to avoid floating-point precision issues.
     const feeBig =
-      provider.feePercent > 0
-        ? (amountBig * BigInt(Math.round(provider.feePercent * 1000))) /
-          BigInt(100000)
+      provider.feeBasisPoints > 0
+        ? (amountBig * BigInt(provider.feeBasisPoints)) / BigInt(10000)
         : BigInt(0);
 
     const maxLiq = provider.maxLiquidity[request.asset];
@@ -117,20 +131,27 @@ export async function getFlashLoanQuotes(
       asset: request.asset,
       amount: request.amount,
       fee: feeBig.toString(),
-      feePercent: provider.feePercent,
-      transaction: buildFlashLoanTransaction(provider),
+      feePercent: provider.feeBasisPoints / 100,
+      transaction: buildFlashLoanTransaction(provider, request.chainId),
       available,
     };
   });
 
   const available = results.filter((r) => r.available);
+
+  if (available.length === 0) {
+    throw new Error(
+      `No flash loan providers with sufficient liquidity for asset ${request.asset} on chain ${request.chainId}`
+    );
+  }
+
   const sorted = available.sort((a, b) => {
     const aFee = BigInt(a.fee);
     const bFee = BigInt(b.fee);
     return aFee < bFee ? -1 : aFee > bFee ? 1 : 0;
   });
 
-  const best = sorted[0] ?? results[0];
+  const best = sorted[0];
 
   return { best, all: results };
 }
