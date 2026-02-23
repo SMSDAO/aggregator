@@ -86,7 +86,9 @@ function buildFlashLoanTransaction(
   provider: FlashLoanProvider,
   chainId: number
 ): SwapTransaction {
-  const addressesForChain = FLASH_LOAN_CONTRACT_ADDRESSES[chainId] ?? {};
+  const addressesForChain =
+    FLASH_LOAN_CONTRACT_ADDRESSES[chainId] ?? {};
+
   const to =
     addressesForChain[provider.name] ??
     "0x0000000000000000000000000000000000000000";
