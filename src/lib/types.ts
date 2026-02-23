@@ -62,6 +62,12 @@ export interface SwapResult {
   simulationResult?: SimulationResult;
 }
 
+/**
+ * Reserved for future onchain simulation support.
+ * To implement: integrate with Tenderly simulation API or use eth_call
+ * against a forked chain state (e.g. via Hardhat/Anvil) and populate
+ * this from the response. Set `simulationResult` on `SwapResult` to expose it.
+ */
 export interface SimulationResult {
   success: boolean;
   gasUsed: string;

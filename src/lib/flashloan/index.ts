@@ -84,7 +84,8 @@ const FLASH_LOAN_CONTRACT_ADDRESSES: Record<number, Record<string, string>> = {
 
 function buildFlashLoanTransaction(
   provider: FlashLoanProvider,
-  chainId: number
+  chainId: number,
+  request: FlashLoanRequest
 ): SwapTransaction {
   const addressesForChain =
     FLASH_LOAN_CONTRACT_ADDRESSES[chainId] ?? {};
@@ -93,12 +94,31 @@ function buildFlashLoanTransaction(
     addressesForChain[provider.name] ??
     "0x0000000000000000000000000000000000000000";
 
+  // Transaction data must be ABI-encoded using a library such as ethers.js or viem.
+  // Each protocol uses a different function signature:
+  //
+  // Aave V3:
+  //   flashLoan(address receiverAddress, address[] assets, uint256[] amounts,
+  //             uint256[] interestRateModes, address onBehalfOf, bytes params, uint16 referralCode)
+  //   e.g. interface.encodeFunctionData("flashLoan", [request.targetContract, [request.asset],
+  //         [request.amount], [0], request.targetContract, request.params, 0])
+  //
+  // dYdX:
+  //   operate(AccountInfo[] accounts, ActionArgs[] actions)  — wraps a Withdraw + Call + Deposit
+  //
+  // Uniswap V3:
+  //   flash(address recipient, uint256 amount0, uint256 amount1, bytes data)
+  //   e.g. interface.encodeFunctionData("flash", [request.targetContract, request.amount, 0, request.params])
+  //
+  // Balancer:
+  //   flashLoan(address recipient, IERC20[] tokens, uint256[] amounts, bytes userData)
+  //   e.g. interface.encodeFunctionData("flashLoan", [request.targetContract, [request.asset],
+  //         [request.amount], request.params])
+  const data = "0x"; // Replace with ABI-encoded calldata for the selected provider (see above).
+
   return {
     to,
-    // NOTE: Transaction data is a placeholder for simulation purposes.
-    // In production, encode this using ABI encoding (e.g., ethers.js or viem)
-    // to match the target contract's function selector and parameter layout.
-    data: "0x",
+    data,
     value: "0",
     gasLimit: "300000",
   };
@@ -134,7 +154,7 @@ export async function getFlashLoanQuotes(
       amount: request.amount,
       fee: feeBig.toString(),
       feePercent: provider.feeBasisPoints / 100,
-      transaction: buildFlashLoanTransaction(provider, request.chainId),
+      transaction: buildFlashLoanTransaction(provider, request.chainId, request),
       available,
     };
   });

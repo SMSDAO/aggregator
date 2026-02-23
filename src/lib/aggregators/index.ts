@@ -44,24 +44,33 @@ function mockToken(address: string, chainId: number): Token {
   };
 }
 
-function calculatePriceImpact(amount: string, liquidity: number): number {
-  const amountNum = parseFloat(amount) / 1e18;
+function calculatePriceImpact(
+  amount: string,
+  liquidity: number,
+  decimals: number = 18
+): number {
+  const amountNum = parseFloat(amount) / Math.pow(10, decimals);
   return Math.min((amountNum / liquidity) * 100, 50);
 }
 
+// STUB: returns simulated data. Replace with a real 1inch Swap API v6.0 call:
+// GET https://api.1inch.dev/swap/v6.0/{chainId}/quote?src={fromToken}&dst={toToken}&amount={amount}
+// Requires an API key from https://portal.1inch.dev/
 async function getOneInchQuote(
   request: QuoteRequest
 ): Promise<QuoteResult | null> {
   try {
+    const fromToken = mockToken(request.fromToken, request.chainId);
+    const toToken = mockToken(request.toToken, request.chainId);
     const baseOutput = (BigInt(request.amount) * BigInt(997)) / BigInt(1000);
     return {
       aggregator: "1inch",
-      fromToken: mockToken(request.fromToken, request.chainId),
-      toToken: mockToken(request.toToken, request.chainId),
+      fromToken,
+      toToken,
       fromAmount: request.amount,
       toAmount: baseOutput.toString(),
       estimatedGas: "150000",
-      priceImpact: calculatePriceImpact(request.amount, 10_000_000),
+      priceImpact: calculatePriceImpact(request.amount, 10_000_000, fromToken.decimals),
       protocols: ["Uniswap V3", "Curve", "Balancer"],
       route: [
         {
@@ -85,19 +94,24 @@ async function getOneInchQuote(
   }
 }
 
+// STUB: returns simulated data. Replace with a real 0x Swap API v2 call:
+// GET https://api.0x.org/swap/permit2/quote?chainId={chainId}&sellToken={fromToken}&buyToken={toToken}&sellAmount={amount}
+// Requires an API key from https://0x.org/docs/introduction/getting-started
 async function getZeroExQuote(
   request: QuoteRequest
 ): Promise<QuoteResult | null> {
   try {
+    const fromToken = mockToken(request.fromToken, request.chainId);
+    const toToken = mockToken(request.toToken, request.chainId);
     const baseOutput = (BigInt(request.amount) * BigInt(995)) / BigInt(1000);
     return {
       aggregator: "0x Protocol",
-      fromToken: mockToken(request.fromToken, request.chainId),
-      toToken: mockToken(request.toToken, request.chainId),
+      fromToken,
+      toToken,
       fromAmount: request.amount,
       toAmount: baseOutput.toString(),
       estimatedGas: "180000",
-      priceImpact: calculatePriceImpact(request.amount, 8_000_000),
+      priceImpact: calculatePriceImpact(request.amount, 8_000_000, fromToken.decimals),
       protocols: ["Uniswap V2", "SushiSwap"],
       fee: 0.05,
       route: [
@@ -122,19 +136,24 @@ async function getZeroExQuote(
   }
 }
 
+// STUB: returns simulated data. Replace with a real ParaSwap API v5 call:
+// GET https://apiv5.paraswap.io/prices?srcToken={fromToken}&destToken={toToken}&amount={amount}&network={chainId}&srcDecimals={d}&destDecimals={d}
+// No API key required for price queries; see https://developers.paraswap.network/
 async function getParaswapQuote(
   request: QuoteRequest
 ): Promise<QuoteResult | null> {
   try {
+    const fromToken = mockToken(request.fromToken, request.chainId);
+    const toToken = mockToken(request.toToken, request.chainId);
     const baseOutput = (BigInt(request.amount) * BigInt(998)) / BigInt(1000);
     return {
       aggregator: "Paraswap",
-      fromToken: mockToken(request.fromToken, request.chainId),
-      toToken: mockToken(request.toToken, request.chainId),
+      fromToken,
+      toToken,
       fromAmount: request.amount,
       toAmount: baseOutput.toString(),
       estimatedGas: "160000",
-      priceImpact: calculatePriceImpact(request.amount, 12_000_000),
+      priceImpact: calculatePriceImpact(request.amount, 12_000_000, fromToken.decimals),
       protocols: ["Uniswap V3", "Aave"],
       route: [
         {
