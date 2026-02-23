@@ -50,20 +50,35 @@ const FLASH_LOAN_PROVIDERS: FlashLoanProvider[] = [
   },
 ];
 
-function buildFlashLoanTransaction(
-  provider: FlashLoanProvider
-): SwapTransaction {
-  const contractAddresses: Record<string, string> = {
+const FLASH_LOAN_CONTRACT_ADDRESSES: Record<number, Record<string, string>> = {
+  // Ethereum mainnet
+  1: {
     "Aave V3": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
     dYdX: "0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e",
     "Uniswap V3": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
     Balancer: "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
-  };
+  },
+  // Additional chain IDs can be added here as needed, e.g.:
+  // 10: { "Aave V3": "0x...", "Uniswap V3": "0x..." },
+  // 137: { "Aave V3": "0x...", "Uniswap V3": "0x..." },
+};
+
+function buildFlashLoanTransaction(
+  provider: FlashLoanProvider,
+  chainId?: number
+): SwapTransaction {
+  const effectiveChainId =
+    chainId ?? provider.chainIds[0] ?? 1;
+
+  const addressesForChain =
+    FLASH_LOAN_CONTRACT_ADDRESSES[effectiveChainId] ?? {};
+
+  const to =
+    addressesForChain[provider.name] ??
+    "0x0000000000000000000000000000000000000000";
 
   return {
-    to:
-      contractAddresses[provider.name] ??
-      "0x0000000000000000000000000000000000000000",
+    to,
     // NOTE: Transaction data is a placeholder for simulation purposes.
     // In production, encode this using ABI encoding (e.g., ethers.js or viem)
     // to match the target contract's function selector and parameter layout.
