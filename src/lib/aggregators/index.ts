@@ -154,30 +154,16 @@ async function getParaswapQuote(
 async function getUniswapQuote(
   request: QuoteRequest
 ): Promise<QuoteResult | null> {
-  try {
-    const baseOutput = (BigInt(request.amount) * BigInt(994)) / BigInt(1000);
-    return {
-      aggregator: "Uniswap",
-      fromToken: mockToken(request.fromToken, request.chainId),
-      toToken: mockToken(request.toToken, request.chainId),
-      fromAmount: request.amount,
-      toAmount: baseOutput.toString(),
-      estimatedGas: "130000",
-      priceImpact: calculatePriceImpact(request.amount, 15_000_000),
-      protocols: ["Uniswap V3"],
-      route: [
-        {
-          protocol: "Uniswap V3",
-          poolAddress: "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640",
-          fromToken: request.fromToken,
-          toToken: request.toToken,
-          share: 100,
-        },
-      ],
-    };
-  } catch {
-    return null;
-  }
+  // This function previously returned a fabricated quote using a hardcoded
+  // formula and mock token metadata. To avoid returning misleading data,
+  // Uniswap integration has been marked as unimplemented here.
+  //
+  // To enable real Uniswap quotes, replace this error with an implementation
+  // that calls Uniswap's official APIs or on-chain contracts and constructs
+  // a proper QuoteResult from the response.
+  throw new Error(
+    "Uniswap quote integration is not implemented. This stub must be replaced with a real integration before use in production."
+  );
 }
 
 export async function getQuotes(request: QuoteRequest): Promise<BestQuote> {
