@@ -51,8 +51,7 @@ const FLASH_LOAN_PROVIDERS: FlashLoanProvider[] = [
 ];
 
 function buildFlashLoanTransaction(
-  provider: FlashLoanProvider,
-  request: FlashLoanRequest
+  provider: FlashLoanProvider
 ): SwapTransaction {
   const contractAddresses: Record<string, string> = {
     "Aave V3": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
@@ -65,14 +64,10 @@ function buildFlashLoanTransaction(
     to:
       contractAddresses[provider.name] ??
       "0x0000000000000000000000000000000000000000",
-    data: `0x${Buffer.from(
-      JSON.stringify({
-        asset: request.asset,
-        amount: request.amount,
-        target: request.targetContract,
-        params: request.params,
-      })
-    ).toString("hex")}`,
+    // NOTE: Transaction data is a placeholder for simulation purposes.
+    // In production, encode this using ABI encoding (e.g., ethers.js or viem)
+    // to match the target contract's function selector and parameter layout.
+    data: "0x",
     value: "0",
     gasLimit: "300000",
   };
@@ -108,7 +103,7 @@ export async function getFlashLoanQuotes(
       amount: request.amount,
       fee: feeBig.toString(),
       feePercent: provider.feePercent,
-      transaction: buildFlashLoanTransaction(provider, request),
+      transaction: buildFlashLoanTransaction(provider),
       available,
     };
   });

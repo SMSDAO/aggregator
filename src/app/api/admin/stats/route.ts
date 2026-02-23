@@ -3,7 +3,13 @@ import type { AdminStats } from "@/lib";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  const adminToken = process.env.ADMIN_TOKEN ?? "admin-secret";
+  const adminToken = process.env.ADMIN_TOKEN;
+  if (!adminToken) {
+    return NextResponse.json(
+      { error: "Admin access is not configured" },
+      { status: 503 }
+    );
+  }
 
   if (!authHeader || authHeader !== `Bearer ${adminToken}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

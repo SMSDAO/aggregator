@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import type { DeveloperRegistration, ApiKey } from "@/lib";
 
-// NOTE: In-memory store for demo purposes. Replace with a persistent database in production.
+// WARNING: In-memory store only. All data is lost on server restart.
+// Must be replaced with a persistent database (e.g., PostgreSQL, MongoDB) before production deployment.
 const registrations = new Map<string, ApiKey>();
 
 function generateApiKey(): string {
