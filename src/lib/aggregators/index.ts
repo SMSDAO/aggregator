@@ -262,11 +262,14 @@ export async function getQuotes(request: QuoteRequest): Promise<BestQuote> {
 
   const best = allQuotes[0];
   const worst = allQuotes[allQuotes.length - 1];
-  const savings = (BigInt(best.toAmount) - BigInt(worst.toAmount)).toString();
-  const savingsPercent =
-    worst.toAmount !== "0"
-      ? (Number(savings) / Number(worst.toAmount)) * 100
-      : 0;
+  const savingsBig = BigInt(best.toAmount) - BigInt(worst.toAmount);
+  const savings = savingsBig.toString();
+  let savingsPercent = 0;
+  if (worst.toAmount !== "0") {
+    // Use integer basis-point math to avoid Number precision loss on large amounts.
+    const scaledBps = (savingsBig * BigInt(10000)) / BigInt(worst.toAmount);
+    savingsPercent = Number(scaledBps) / 100;
+  }
 
   return {
     ...best,

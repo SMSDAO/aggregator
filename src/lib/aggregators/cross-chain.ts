@@ -112,7 +112,6 @@ async function getLifiQuote(
       dexUsed: "Uniswap V3",
       estimatedTimeSeconds: 120,
       estimatedGas: "250000",
-      // Stubbed fee display; avoid parseFloat/toFixed on potentially large base-unit amounts.
       feesUsd: "0.0000",
       transaction: buildPlaceholderTransaction(
         LIFI_ROUTER_ADDRESSES[request.fromChainId] ??
@@ -155,7 +154,7 @@ async function getSocketQuote(
       dexUsed: "SushiSwap",
       estimatedTimeSeconds: 180,
       estimatedGas: "280000",
-      feesUsd: (parseFloat(request.amount) * 0.004 / 1e18).toFixed(4),
+      feesUsd: "0.0000",
       transaction: buildPlaceholderTransaction(
         SOCKET_GATEWAY_ADDRESSES[request.fromChainId] ??
           "0x0000000000000000000000000000000000000000"
@@ -196,7 +195,7 @@ async function getSquidQuote(
       dexUsed: "Uniswap V3",
       estimatedTimeSeconds: 60,
       estimatedGas: "220000",
-      feesUsd: (parseFloat(request.amount) * 0.002 / 1e18).toFixed(4),
+      feesUsd: "0.0000",
       transaction: buildPlaceholderTransaction(
         SQUID_ROUTER_ADDRESSES[request.fromChainId] ??
           "0x0000000000000000000000000000000000000000"
@@ -283,7 +282,7 @@ export async function getCrossChainQuotes(
     const worstBig = BigInt(worst.toAmount);
     // Compute percentage with 2 decimal places using integer math:
     // scaledPercentTimes100 = (savings / worst) * 100, scaled by an extra 100x.
-    const scaledPercentTimes100 = (savingsBig * 10000n) / worstBig;
+    const scaledPercentTimes100 = (savingsBig * BigInt(10000)) / worstBig;
     savingsPercent = Number(scaledPercentTimes100) / 100;
   }
   return { ...best, savings, savingsPercent, allQuotes };

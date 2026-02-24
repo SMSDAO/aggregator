@@ -25,19 +25,32 @@ export class PostgresRegistrationStore implements RegistrationStore {
 
   async findByEmail(email: string): Promise<ApiKey | undefined> {
     const rows = (await this.sql`
-      SELECT * FROM api_keys WHERE email = ${email} LIMIT 1
+      SELECT
+        key, name, email, plan, requests,
+        project_name  AS "projectName",
+        use_case      AS "useCase",
+        created_at    AS "createdAt"
+      FROM api_keys WHERE email = ${email} LIMIT 1
     `) as Record<string, unknown>[];
     return rows[0] ? (rows[0] as unknown as ApiKey) : undefined;
   }
 
   async findByKey(key: string): Promise<ApiKey | undefined> {
     const rows = (await this.sql`
-      SELECT * FROM api_keys WHERE key = ${key} LIMIT 1
+      SELECT
+        key, name, email, plan, requests,
+        project_name  AS "projectName",
+        use_case      AS "useCase",
+        created_at    AS "createdAt"
+      FROM api_keys WHERE key = ${key} LIMIT 1
     `) as Record<string, unknown>[];
     return rows[0] ? (rows[0] as unknown as ApiKey) : undefined;
   }
 
   async save(apiKey: ApiKey): Promise<void> {
+    // ON CONFLICT … DO UPDATE ensures the row is always written and returned,
+    // preventing a race where DO NOTHING silently drops a concurrent INSERT
+    // while the caller still receives the newly-generated key.
     await this.sql`
       INSERT INTO api_keys (key, name, email, project_name, use_case, created_at, requests, plan)
       VALUES (
@@ -50,7 +63,14 @@ export class PostgresRegistrationStore implements RegistrationStore {
         ${apiKey.requests},
         ${apiKey.plan}
       )
-      ON CONFLICT (email) DO NOTHING
+      ON CONFLICT (email) DO UPDATE SET
+        key        = EXCLUDED.key,
+        name       = EXCLUDED.name,
+        project_name = EXCLUDED.project_name,
+        use_case   = EXCLUDED.use_case,
+        created_at = EXCLUDED.created_at,
+        requests   = EXCLUDED.requests,
+        plan       = EXCLUDED.plan
     `;
   }
 }

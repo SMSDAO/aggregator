@@ -42,15 +42,32 @@ function parseRequest(
     );
   }
 
+  const parsedFromChainId = parseInt(fromChainId, 10);
+  const parsedToChainId   = parseInt(toChainId,   10);
+  if (!Number.isFinite(parsedFromChainId)) {
+    throw new Error("Invalid fromChainId");
+  }
+  if (!Number.isFinite(parsedToChainId)) {
+    throw new Error("Invalid toChainId");
+  }
+
+  let parsedSlippage: number | undefined;
+  if (slippage) {
+    parsedSlippage = parseFloat(slippage);
+    if (!Number.isFinite(parsedSlippage) || parsedSlippage < 0 || parsedSlippage > 50) {
+      throw new Error("slippage must be a number between 0 and 50");
+    }
+  }
+
   return {
-    fromChainId: parseInt(fromChainId, 10),
-    toChainId: parseInt(toChainId, 10),
+    fromChainId: parsedFromChainId,
+    toChainId: parsedToChainId,
     fromToken,
     toToken,
     amount,
     fromAddress,
     toAddress: toAddress ?? undefined,
-    slippage: slippage ? parseFloat(slippage) : undefined,
+    slippage: parsedSlippage,
     aggregators: aggregators ? aggregators.split(",").map((s) => s.trim()) : undefined,
   };
 }
@@ -75,8 +92,8 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Internal server error";
-    const status = message.startsWith("Missing") ? 400 : 500;
-    return NextResponse.json({ error: message }, { status });
+    const is400 = message.startsWith("Missing") || message.startsWith("Invalid") || message.startsWith("slippage");
+    return NextResponse.json({ error: message }, { status: is400 ? 400 : 500 });
   }
 }
 
@@ -100,7 +117,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Internal server error";
-    const status = message.startsWith("Missing") ? 400 : 500;
-    return NextResponse.json({ error: message }, { status });
+    const is400 = message.startsWith("Missing") || message.startsWith("Invalid") || message.startsWith("slippage");
+    return NextResponse.json({ error: message }, { status: is400 ? 400 : 500 });
   }
 }

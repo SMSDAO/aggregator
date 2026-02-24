@@ -57,11 +57,12 @@ export default function AdminPage() {
             onSubmit={handleLogin}
             className="max-w-sm bg-gray-900 border border-gray-800 rounded-xl p-6 mb-8 space-y-4"
           >
-            <h2 className="font-semibold text-lg">Authenticate</h2>
+            <label htmlFor="admin-token" className="font-semibold text-lg">Authenticate</label>
             {error && (
               <p className="text-red-400 text-sm">{error}</p>
             )}
             <input
+              id="admin-token"
               type="password"
               value={token}
               onChange={(e) => setToken(e.target.value)}

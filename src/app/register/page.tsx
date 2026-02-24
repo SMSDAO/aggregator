@@ -81,10 +81,11 @@ export default function RegisterPage() {
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label htmlFor="reg-name" className="block text-sm font-medium text-gray-300 mb-1">
                 Full Name
               </label>
               <input
+                id="reg-name"
                 type="text"
                 required
                 value={form.name}
@@ -94,10 +95,11 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label htmlFor="reg-email" className="block text-sm font-medium text-gray-300 mb-1">
                 Email Address
               </label>
               <input
+                id="reg-email"
                 type="email"
                 required
                 value={form.email}
@@ -107,10 +109,11 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label htmlFor="reg-project" className="block text-sm font-medium text-gray-300 mb-1">
                 Project Name
               </label>
               <input
+                id="reg-project"
                 type="text"
                 required
                 value={form.projectName}
@@ -122,10 +125,11 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
+              <label htmlFor="reg-usecase" className="block text-sm font-medium text-gray-300 mb-1">
                 Use Case
               </label>
               <select
+                id="reg-usecase"
                 value={form.useCase}
                 onChange={(e) => setForm({ ...form, useCase: e.target.value })}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
