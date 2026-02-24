@@ -181,7 +181,7 @@ console.log(`Fee: ${flashLoan.best.feePercent}%`);
 
 Deploy to Vercel with a single click:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SMSDAO/aggregator)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
 
 Or use the included `vercel.json` configuration for manual deployment.
 
