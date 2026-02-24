@@ -132,3 +132,60 @@ export interface AdminStats {
   topPairs: Array<{ pair: string; volume: string; requests: number }>;
   recentRegistrations: ApiKey[];
 }
+
+/** A request to swap tokens across two different chains. */
+export interface CrossChainQuoteRequest {
+  /** Source chain ID (e.g. 1 for Ethereum). */
+  fromChainId: number;
+  /** Destination chain ID (e.g. 137 for Polygon). */
+  toChainId: number;
+  /** Token address on the source chain. */
+  fromToken: string;
+  /** Token address on the destination chain. */
+  toToken: string;
+  /** Amount in the smallest unit of the source token. */
+  amount: string;
+  /** Sender wallet address. */
+  fromAddress: string;
+  /** Recipient wallet address (defaults to fromAddress). */
+  toAddress?: string;
+  /** Maximum acceptable slippage in percent (e.g. 0.5 = 0.5%). */
+  slippage?: number;
+  /** Optionally restrict which cross-chain aggregators to query. */
+  aggregators?: string[];
+}
+
+/** A single cross-chain quote from one aggregator/bridge. */
+export interface CrossChainQuoteResult {
+  /** Name of the cross-chain aggregator (e.g. "Li.Fi", "Socket", "Squid"). */
+  aggregator: string;
+  fromChainId: number;
+  toChainId: number;
+  fromToken: Token;
+  toToken: Token;
+  fromAmount: string;
+  /** Expected output amount on the destination chain. */
+  toAmount: string;
+  /** Bridge / protocol used for the cross-chain transfer leg. */
+  bridgeUsed: string;
+  /** DEX protocol used for any on-chain swap leg. */
+  dexUsed?: string;
+  /** Estimated time for the full cross-chain transfer, in seconds. */
+  estimatedTimeSeconds: number;
+  /** Total gas estimate across all chains (source + bridge). */
+  estimatedGas: string;
+  /** Total fee in USD charged by the bridge/aggregator. */
+  feesUsd: string;
+  /** Transaction calldata to execute the swap/bridge on the source chain. */
+  transaction: SwapTransaction;
+}
+
+/** The best cross-chain quote plus all alternatives for comparison. */
+export interface BestCrossChainQuote extends CrossChainQuoteResult {
+  /** Savings vs the worst quote, in destination-token base units. */
+  savings: string;
+  /** Savings as a percentage over the worst quote. */
+  savingsPercent: number;
+  allQuotes: CrossChainQuoteResult[];
+}
+

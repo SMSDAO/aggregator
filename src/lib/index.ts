@@ -1,4 +1,9 @@
 export { getQuotes, SUPPORTED_CHAINS } from "./aggregators";
+export {
+  getCrossChainQuotes,
+  CROSS_CHAIN_SUPPORTED_CHAINS,
+  CROSS_CHAIN_AGGREGATORS,
+} from "./aggregators/cross-chain";
 export { getFlashLoanQuotes, FLASH_LOAN_PROVIDERS } from "./flashloan";
 export type {
   Token,
@@ -17,4 +22,7 @@ export type {
   DeveloperRegistration,
   ApiKey,
   AdminStats,
+  CrossChainQuoteRequest,
+  CrossChainQuoteResult,
+  BestCrossChainQuote,
 } from "./types";
