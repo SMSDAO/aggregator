@@ -57,18 +57,21 @@ export default function AdminPage() {
             onSubmit={handleLogin}
             className="max-w-sm bg-gray-900 border border-gray-800 rounded-xl p-6 mb-8 space-y-4"
           >
-            <label htmlFor="admin-token" className="font-semibold text-lg">Authenticate</label>
+            <h2 className="font-semibold text-lg">Authenticate</h2>
             {error && (
               <p className="text-red-400 text-sm">{error}</p>
             )}
-            <input
-              id="admin-token"
-              type="password"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder="Admin token"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+            <div>
+              <label htmlFor="admin-token" className="sr-only">Admin token</label>
+              <input
+                id="admin-token"
+                type="password"
+                value={token}
+                onChange={(e) => setToken(e.target.value)}
+                placeholder="Admin token"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
             <button
               type="submit"
               disabled={loading}
