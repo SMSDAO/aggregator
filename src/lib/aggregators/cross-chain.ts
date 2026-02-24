@@ -274,12 +274,17 @@ export async function getCrossChainQuotes(
 
   const best = allQuotes[0];
   const worst = allQuotes[allQuotes.length - 1];
-  const savings = (BigInt(best.toAmount) - BigInt(worst.toAmount)).toString();
-  const savingsPercent =
-    worst.toAmount !== "0"
-      ? (Number(savings) / Number(worst.toAmount)) * 100
-      : 0;
+  const savingsBig = BigInt(best.toAmount) - BigInt(worst.toAmount);
+  const savings = savingsBig.toString();
 
+  let savingsPercent = 0;
+  if (worst.toAmount !== "0") {
+    const worstBig = BigInt(worst.toAmount);
+    // Compute percentage with 2 decimal places using integer math:
+    // scaledPercentTimes100 = (savings / worst) * 100, scaled by an extra 100x.
+    const scaledPercentTimes100 = (savingsBig * 10000n) / worstBig;
+    savingsPercent = Number(scaledPercentTimes100) / 100;
+  }
   return { ...best, savings, savingsPercent, allQuotes };
 }
 
