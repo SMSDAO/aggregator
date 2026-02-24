@@ -1,5 +1,11 @@
 export { getQuotes, SUPPORTED_CHAINS } from "./aggregators";
 export {
+  calcPlatformFee,
+  getPlatformFeeBps,
+  getPlatformFeeRecipient,
+} from "./platform-fee";
+export type { PlatformFeeInfo } from "./platform-fee";
+export {
   getCrossChainQuotes,
   CROSS_CHAIN_SUPPORTED_CHAINS,
   CROSS_CHAIN_AGGREGATORS,

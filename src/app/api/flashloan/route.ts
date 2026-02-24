@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getFlashLoanQuotes } from "@/lib";
+import { getFlashLoanQuotes, calcPlatformFee } from "@/lib";
 import type { FlashLoanRequest } from "@/lib";
 
 export async function POST(request: NextRequest) {
@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await getFlashLoanQuotes(body);
-    return NextResponse.json(result);
+    const platformFee = calcPlatformFee(body.amount);
+    return NextResponse.json({ ...result, platformFee });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Internal server error";
@@ -49,7 +50,8 @@ export async function GET(request: NextRequest) {
       targetContract,
       params: "0x",
     });
-    return NextResponse.json(result);
+    const platformFee = calcPlatformFee(amount);
+    return NextResponse.json({ ...result, platformFee });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Internal server error";

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getQuotes } from "@/lib";
+import { getQuotes, calcPlatformFee } from "@/lib";
 import type { QuoteRequest } from "@/lib";
 
 export async function POST(request: NextRequest) {
@@ -14,7 +14,8 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await getQuotes(body);
-    return NextResponse.json(result);
+    const platformFee = calcPlatformFee(body.amount);
+    return NextResponse.json({ ...result, platformFee });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Internal server error";
@@ -44,7 +45,8 @@ export async function GET(request: NextRequest) {
       chainId: parseInt(chainId, 10),
       slippage: parseFloat(searchParams.get("slippage") ?? "0.5"),
     });
-    return NextResponse.json(result);
+    const platformFee = calcPlatformFee(amount);
+    return NextResponse.json({ ...result, platformFee });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Internal server error";
