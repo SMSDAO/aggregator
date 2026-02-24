@@ -146,7 +146,10 @@ export async function getFlashLoanQuotes(
         : BigInt(0);
 
     const maxLiq = provider.maxLiquidity[request.asset];
-    const available = maxLiq ? BigInt(request.amount) <= BigInt(maxLiq) : true;
+    const available =
+      maxLiq !== undefined && maxLiq !== null
+        ? BigInt(request.amount) <= BigInt(maxLiq)
+        : false;
 
     return {
       provider: provider.name,
