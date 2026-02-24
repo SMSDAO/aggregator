@@ -112,7 +112,8 @@ async function getLifiQuote(
       dexUsed: "Uniswap V3",
       estimatedTimeSeconds: 120,
       estimatedGas: "250000",
-      feesUsd: (parseFloat(request.amount) * 0.003 / 1e18).toFixed(4),
+      // Stubbed fee display; avoid parseFloat/toFixed on potentially large base-unit amounts.
+      feesUsd: "0.0000",
       transaction: buildPlaceholderTransaction(
         LIFI_ROUTER_ADDRESSES[request.fromChainId] ??
           "0x0000000000000000000000000000000000000000"
