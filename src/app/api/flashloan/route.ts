@@ -42,11 +42,19 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const parsedChainId = parseInt(chainId, 10);
+  if (Number.isNaN(parsedChainId)) {
+    return NextResponse.json(
+      { error: "Invalid chainId" },
+      { status: 400 }
+    );
+  }
+
   try {
     const result = await getFlashLoanQuotes({
       asset,
       amount,
-      chainId: parseInt(chainId, 10),
+      chainId: parsedChainId,
       targetContract,
       params: "0x",
     });
