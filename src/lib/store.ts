@@ -3,25 +3,21 @@ import type { ApiKey } from "./types";
 /**
  * Storage interface for developer registrations.
  *
- * Replace the default `registrationStore` export with a database-backed
- * implementation before deploying to production. Options:
- *   - Vercel Postgres: https://vercel.com/docs/storage/vercel-postgres
- *   - Upstash Redis:   https://upstash.com/
- *   - PlanetScale:     https://planetscale.com
+ * The exported `registrationStore` automatically selects the right backend:
+ *   - When DATABASE_URL is set → PostgresRegistrationStore (Neon / Supabase / any Postgres)
+ *   - Otherwise               → InMemoryRegistrationStore  (local development only)
  *
- * Example (Upstash Redis):
- *   import { Redis } from "@upstash/redis";
- *   const redis = new Redis({ url: process.env.UPSTASH_REDIS_URL!, token: process.env.UPSTASH_REDIS_TOKEN! });
+ * Vercel setup (one-click):
+ *   1. Add the "Neon Postgres" integration from the Vercel Marketplace.
+ *      Vercel automatically injects DATABASE_URL into your project.
+ *   2. Run the schema migration once:
+ *        npx vercel env pull .env.local && psql $DATABASE_URL -f scripts/migrate.sql
  *
- *   class RedisRegistrationStore implements RegistrationStore {
- *     async findByEmail(email: string) { return redis.hget<ApiKey>("reg:email", email) ?? undefined; }
- *     async findByKey(key: string) { return redis.hget<ApiKey>("reg:key", key) ?? undefined; }
- *     async save(apiKey: ApiKey) {
- *       await redis.hset("reg:email", { [apiKey.email]: apiKey });
- *       await redis.hset("reg:key", { [apiKey.key]: apiKey });
- *     }
- *   }
- *   export const registrationStore: RegistrationStore = new RedisRegistrationStore();
+ * Supabase setup:
+ *   1. Create a project at https://supabase.com
+ *   2. Copy the connection string from Project → Settings → Database → URI
+ *   3. Add it as DATABASE_URL in your Vercel project environment variables.
+ *   4. Run: psql $DATABASE_URL -f scripts/migrate.sql
  */
 export interface RegistrationStore {
   findByEmail(email: string): Promise<ApiKey | undefined>;
@@ -52,5 +48,14 @@ class InMemoryRegistrationStore implements RegistrationStore {
   }
 }
 
-export const registrationStore: RegistrationStore =
-  new InMemoryRegistrationStore();
+export const registrationStore: RegistrationStore = (() => {
+  if (process.env.DATABASE_URL) {
+    // Lazy import so the Neon driver is only loaded when DATABASE_URL is present.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { PostgresRegistrationStore } = require("./store-pg") as {
+      PostgresRegistrationStore: new (url: string) => RegistrationStore;
+    };
+    return new PostgresRegistrationStore(process.env.DATABASE_URL);
+  }
+  return new InMemoryRegistrationStore();
+})();
