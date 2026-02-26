@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -12,6 +12,22 @@ const NAV_LINKS = [
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const hamburgerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        hamburgerRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    // Move focus into the menu when it opens.
+    menuRef.current?.querySelector<HTMLElement>("a")?.focus();
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
 
   return (
     <nav className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/80 backdrop-blur-md">
@@ -35,6 +51,7 @@ export default function NavBar() {
 
         {/* Mobile hamburger */}
         <button
+          ref={hamburgerRef}
           className="sm:hidden p-2 text-gray-400 hover:text-white transition-colors"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
@@ -55,7 +72,7 @@ export default function NavBar() {
 
       {/* Mobile menu */}
       {open && (
-        <div id="mobile-menu" className="sm:hidden border-t border-gray-800 bg-gray-950 px-4 py-3 space-y-1">
+        <div id="mobile-menu" ref={menuRef} className="sm:hidden border-t border-gray-800 bg-gray-950 px-4 py-3 space-y-1">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
