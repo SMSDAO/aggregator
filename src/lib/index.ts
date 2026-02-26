@@ -11,6 +11,9 @@ export {
   CROSS_CHAIN_AGGREGATORS,
 } from "./aggregators/cross-chain";
 export { getFlashLoanQuotes, FLASH_LOAN_PROVIDERS } from "./flashloan";
+export { getConfig, validateConfig } from "./config";
+export type { AppConfig, ConfigWarning } from "./config";
+export { fetchWithRetry } from "./retry";
 export type {
   Token,
   QuoteRequest,

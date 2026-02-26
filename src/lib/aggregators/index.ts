@@ -1,4 +1,5 @@
 import type { QuoteRequest, QuoteResult, BestQuote, Token, RouteStep } from "../types";
+import { fetchWithRetry } from "../retry";
 
 const SUPPORTED_CHAINS = [1, 10, 56, 137, 8453, 42161, 43114];
 
@@ -56,7 +57,7 @@ async function getOneInchQuote(request: QuoteRequest): Promise<QuoteResult | nul
     url.searchParams.set("amount", request.amount);
     if (request.slippage != null) url.searchParams.set("slippage", String(request.slippage));
 
-    const resp = await fetch(url.toString(), {
+    const resp = await fetchWithRetry(url.toString(), {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
     if (!resp.ok) return null;
@@ -110,7 +111,7 @@ async function getZeroExQuote(request: QuoteRequest): Promise<QuoteResult | null
     url.searchParams.set("sellAmount",  request.amount);
     if (request.slippage != null) url.searchParams.set("slippageBps", String(Math.round(request.slippage * 100)));
 
-    const resp = await fetch(url.toString(), {
+    const resp = await fetchWithRetry(url.toString(), {
       headers: { "0x-api-key": apiKey },
     });
     if (!resp.ok) return null;
@@ -165,7 +166,7 @@ async function getParaswapQuote(request: QuoteRequest): Promise<QuoteResult | nu
     url.searchParams.set("destDecimals", String(toToken.decimals));
     url.searchParams.set("side",         "SELL");
 
-    const resp = await fetch(url.toString());
+    const resp = await fetchWithRetry(url.toString());
     if (!resp.ok) return null;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -207,13 +208,12 @@ async function getParaswapQuote(request: QuoteRequest): Promise<QuoteResult | nu
 async function getUniswapQuote(
   request: QuoteRequest
 ): Promise<QuoteResult | null> {
-  // To enable real Uniswap quotes, replace this error with an implementation
-  // that calls the Uniswap Auto Router API or the on-chain Quoter V2 contract
-  // and constructs a proper QuoteResult from the response.
+  // Uniswap integration not yet implemented.
+  // To enable: call the Uniswap Auto Router API or the on-chain Quoter V2
+  // contract and return a QuoteResult. Until then, return null so other
+  // aggregators continue to serve quotes gracefully.
   void request;
-  throw new Error(
-    "Uniswap quote integration is not implemented. This stub must be replaced with a real integration before use in production."
-  );
+  return null;
 }
 
 export async function getQuotes(request: QuoteRequest): Promise<BestQuote> {

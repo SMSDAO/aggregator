@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import Link from "next/link";
+import NavBar from "@/components/NavBar";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -29,28 +29,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-950`}
       >
-        <nav className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/80 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-            <Link href="/" className="font-bold text-white text-lg">
-              ⚡ DEX Aggregator
-            </Link>
-            <div className="flex items-center gap-6 text-sm text-gray-400">
-              <Link href="/" className="hover:text-white transition-colors">
-                Home
-              </Link>
-              <Link href="/docs" className="hover:text-white transition-colors">
-                Docs
-              </Link>
-              <Link href="/register" className="hover:text-white transition-colors">
-                Register
-              </Link>
-              <Link href="/admin" className="hover:text-white transition-colors">
-                Admin
-              </Link>
-            </div>
-          </div>
-        </nav>
-        {children}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded focus:bg-indigo-600 focus:text-white focus:font-semibold"
+        >
+          Skip to content
+        </a>
+        <NavBar />
+        <div id="main-content">{children}</div>
       </body>
     </html>
   );
