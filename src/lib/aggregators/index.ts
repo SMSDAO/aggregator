@@ -190,7 +190,7 @@ async function getParaswapQuote(request: QuoteRequest): Promise<QuoteResult | nu
     ) ?? [];
 
     return {
-      aggregator: "Paraswap",
+      aggregator: "ParaSwap",
       fromToken:  resolveToken(request.fromToken, request.chainId, { decimals: priceRoute.srcDecimals }),
       toToken:    resolveToken(request.toToken,   request.chainId, { decimals: priceRoute.destDecimals }),
       fromAmount: request.amount,
@@ -230,7 +230,7 @@ export async function getQuotes(request: QuoteRequest): Promise<BestQuote> {
 
   const selectedFns = request.aggregators
     ? aggregatorFns.filter((fn) => {
-        const names = ["1inch", "0x Protocol", "Paraswap", "Uniswap"];
+        const names = ["1inch", "0x Protocol", "ParaSwap", "Uniswap"];
         const idx = aggregatorFns.indexOf(fn);
         return request.aggregators!.includes(names[idx]);
       })

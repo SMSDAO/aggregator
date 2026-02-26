@@ -33,18 +33,19 @@ export async function fetchWithRetry(
     options;
 
   let lastError: unknown;
+  let retries = 0;
   for (let attempt = 0; attempt < attempts; attempt++) {
     try {
       const response = await fetch(url, init);
       if (!retryStatuses.includes(response.status) || attempt === attempts - 1) {
         return response;
       }
-      // Retryable status — wait before next attempt.
-      await delay(baseDelayMs * 2 ** attempt);
+      // Retryable status — wait before next attempt using number of retries so far.
+      await delay(baseDelayMs * 2 ** retries++);
     } catch (err) {
       lastError = err;
       if (attempt < attempts - 1) {
-        await delay(baseDelayMs * 2 ** attempt);
+        await delay(baseDelayMs * 2 ** retries++);
       }
     }
   }

@@ -16,7 +16,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "Meta DEX Aggregator",
-  description: "Get the best swap quotes across 1inch, 0x Protocol, Paraswap, and Uniswap",
+  description: "Get the best swap quotes across 1inch, 0x Protocol, ParaSwap, and Uniswap",
 };
 
 export default function RootLayout({

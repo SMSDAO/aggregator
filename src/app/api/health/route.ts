@@ -14,7 +14,7 @@ export async function GET() {
   const aggregators = {
     "1inch": !!cfg.oneInchApiKey,
     "0x Protocol": !!cfg.zeroExApiKey,
-    Paraswap: true, // no API key required
+    ParaSwap: true, // no API key required
   };
 
   const status = warnings.some((w) =>
