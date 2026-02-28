@@ -23,10 +23,7 @@ export interface AppConfig {
 
 /** Returns the current application configuration read from environment variables. */
 export function getConfig(): AppConfig {
-  const rawBps = process.env.PLATFORM_FEE_BPS;
-  const parsedBps = rawBps ? parseInt(rawBps, 10) : NaN;
-  const platformFeeBps =
-    !isNaN(parsedBps) && parsedBps >= 0 ? parsedBps : 10;
+  const { value: platformFeeBps } = parsePlatformFeeBps(process.env.PLATFORM_FEE_BPS);
 
   return {
     databaseUrl: process.env.DATABASE_URL || undefined,
@@ -38,48 +35,72 @@ export function getConfig(): AppConfig {
   };
 }
 
+/**
+ * Parses PLATFORM_FEE_BPS from a raw env string.
+ * Returns the clamped value and whether the raw input was out of range.
+ */
+function parsePlatformFeeBps(raw: string | undefined): { value: number; outOfRange: boolean } {
+  if (!raw) return { value: 10, outOfRange: false };
+  const parsed = parseInt(raw, 10);
+  if (isNaN(parsed) || parsed < 0 || parsed > 10000) {
+    return { value: 10, outOfRange: true };
+  }
+  return { value: parsed, outOfRange: false };
+}
+
 export interface ConfigWarning {
   key: string;
   message: string;
 }
 
 /**
- * Validates the current configuration and returns a list of warnings.
+ * Validates the supplied (or current) configuration and returns a list of warnings.
+ * Accepts an optional pre-computed `AppConfig` so callers that already hold one
+ * (e.g. the health endpoint) avoid a redundant env-var read.
  * Non-fatal issues are surfaced as warnings; no exceptions are thrown.
  */
-export function validateConfig(): ConfigWarning[] {
-  const cfg = getConfig();
+export function validateConfig(cfg?: AppConfig): ConfigWarning[] {
+  const config = cfg ?? getConfig();
   const warnings: ConfigWarning[] = [];
 
-  if (!cfg.databaseUrl) {
+  if (!config.databaseUrl) {
     warnings.push({
       key: "DATABASE_URL",
       message: "Not set — using in-memory store (data lost on restart, not suitable for production).",
     });
   }
 
-  if (!cfg.adminToken) {
+  if (!config.adminToken) {
     warnings.push({
       key: "ADMIN_TOKEN",
       message: "Not set — admin dashboard is disabled.",
     });
   }
 
-  if (!cfg.platformFeeRecipient) {
+  const rawBps = process.env.PLATFORM_FEE_BPS;
+  const { outOfRange } = parsePlatformFeeBps(rawBps);
+  if (outOfRange) {
+    warnings.push({
+      key: "PLATFORM_FEE_BPS",
+      message: `Invalid value "${rawBps}" — must be an integer 0–10000; the default of 10 bps is being used.`,
+    });
+  }
+
+  if (!config.platformFeeRecipient) {
     warnings.push({
       key: "PLATFORM_FEE_RECIPIENT",
       message: "Not set — platform fees are calculated but no recipient is configured.",
     });
   }
 
-  if (!cfg.oneInchApiKey) {
+  if (!config.oneInchApiKey) {
     warnings.push({
       key: "ONEINCH_API_KEY",
       message: "Not set — 1inch quotes will be skipped.",
     });
   }
 
-  if (!cfg.zeroExApiKey) {
+  if (!config.zeroExApiKey) {
     warnings.push({
       key: "ZEROX_API_KEY",
       message: "Not set — 0x Protocol quotes will be skipped.",

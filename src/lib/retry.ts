@@ -31,21 +31,24 @@ export async function fetchWithRetry(
 ): Promise<Response> {
   const { attempts = 3, baseDelayMs = 200, retryStatuses = [429, 500, 502, 503, 504] } =
     options;
+  // Guard against nonsensical configuration: at least 1 attempt, non-negative delay.
+  const safeAttempts = Math.max(1, attempts);
+  const safeBaseDelayMs = Math.max(0, baseDelayMs);
 
   let lastError: unknown;
   let retries = 0;
-  for (let attempt = 0; attempt < attempts; attempt++) {
+  for (let attempt = 0; attempt < safeAttempts; attempt++) {
     try {
       const response = await fetch(url, init);
-      if (!retryStatuses.includes(response.status) || attempt === attempts - 1) {
+      if (!retryStatuses.includes(response.status) || attempt === safeAttempts - 1) {
         return response;
       }
       // Retryable status — wait before next attempt using number of retries so far.
-      await delay(baseDelayMs * 2 ** retries++);
+      await delay(safeBaseDelayMs * 2 ** retries++);
     } catch (err) {
       lastError = err;
-      if (attempt < attempts - 1) {
-        await delay(baseDelayMs * 2 ** retries++);
+      if (attempt < safeAttempts - 1) {
+        await delay(safeBaseDelayMs * 2 ** retries++);
       }
     }
   }
