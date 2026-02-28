@@ -9,7 +9,7 @@ import { getConfig, validateConfig } from "@/lib/config";
  */
 export async function GET() {
   const cfg = getConfig();
-  const warnings = validateConfig();
+  const warnings = validateConfig(cfg);
 
   const aggregators = {
     "1inch": !!cfg.oneInchApiKey,
