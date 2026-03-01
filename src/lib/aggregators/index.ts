@@ -215,7 +215,6 @@ async function getUniswapQuote(
   }
   // In fan-out mode (no explicit aggregator selection) return null so
   // other aggregators continue to serve quotes gracefully.
-  void request;
   return null;
 }
 
