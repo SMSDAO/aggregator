@@ -19,11 +19,18 @@ export interface AppConfig {
   oneInchApiKey: string | undefined;
   /** 0x API key. Undefined → 0x quotes skipped. */
   zeroExApiKey: string | undefined;
+  /**
+   * Raw value of PLATFORM_FEE_BPS from the environment.
+   * Stored alongside the parsed value so validateConfig() can include it
+   * in warning messages without re-reading process.env.
+   */
+  platformFeeBpsRaw: string | undefined;
 }
 
 /** Returns the current application configuration read from environment variables. */
 export function getConfig(): AppConfig {
-  const { value: platformFeeBps } = parsePlatformFeeBps(process.env.PLATFORM_FEE_BPS);
+  const rawBps = process.env.PLATFORM_FEE_BPS;
+  const { value: platformFeeBps } = parsePlatformFeeBps(rawBps);
 
   return {
     databaseUrl: process.env.DATABASE_URL || undefined,
@@ -32,6 +39,7 @@ export function getConfig(): AppConfig {
     platformFeeRecipient: process.env.PLATFORM_FEE_RECIPIENT || null,
     oneInchApiKey: process.env.ONEINCH_API_KEY || undefined,
     zeroExApiKey: process.env.ZEROX_API_KEY || undefined,
+    platformFeeBpsRaw: rawBps,
   };
 }
 
@@ -84,7 +92,7 @@ export function validateConfig(cfg?: AppConfig): ConfigWarning[] {
     });
   }
 
-  const rawBps = process.env.PLATFORM_FEE_BPS;
+  const rawBps = config.platformFeeBpsRaw ?? process.env.PLATFORM_FEE_BPS;
   const { outOfRange } = parsePlatformFeeBps(rawBps);
   if (outOfRange) {
     warnings.push({

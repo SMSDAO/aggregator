@@ -208,10 +208,13 @@ async function getParaswapQuote(request: QuoteRequest): Promise<QuoteResult | nu
 async function getUniswapQuote(
   request: QuoteRequest
 ): Promise<QuoteResult | null> {
-  // Uniswap integration not yet implemented.
-  // To enable: call the Uniswap Auto Router API or the on-chain Quoter V2
-  // contract and return a QuoteResult. Until then, return null so other
-  // aggregators continue to serve quotes gracefully.
+  // Throw a clear diagnostic when Uniswap is explicitly requested so
+  // callers don't receive the generic "No quotes available" error.
+  if (request.aggregators?.includes("Uniswap")) {
+    throw new Error("Uniswap integration is not yet implemented");
+  }
+  // In fan-out mode (no explicit aggregator selection) return null so
+  // other aggregators continue to serve quotes gracefully.
   void request;
   return null;
 }

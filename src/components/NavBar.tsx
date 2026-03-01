@@ -52,6 +52,7 @@ export default function NavBar() {
         {/* Mobile hamburger */}
         <button
           ref={hamburgerRef}
+          type="button"
           className="sm:hidden p-2 text-gray-400 hover:text-white transition-colors"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
