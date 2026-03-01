@@ -41,8 +41,15 @@ export function getConfig(): AppConfig {
  */
 function parsePlatformFeeBps(raw: string | undefined): { value: number; outOfRange: boolean } {
   if (!raw) return { value: 10, outOfRange: false };
-  const parsed = parseInt(raw, 10);
-  if (isNaN(parsed) || parsed < 0 || parsed > 10000) {
+
+  // Ensure the raw value is a base-10 integer (digits only) before parsing.
+  // This prevents silently accepting values like "10.5" or "10bps".
+  if (!/^\d+$/.test(raw)) {
+    return { value: 10, outOfRange: true };
+  }
+
+  const parsed = Number(raw);
+  if (parsed < 0 || parsed > 10000) {
     return { value: 10, outOfRange: true };
   }
   return { value: parsed, outOfRange: false };
