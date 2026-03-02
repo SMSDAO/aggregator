@@ -13,6 +13,8 @@
  *                                encoding is implemented.
  */
 
+import { getConfig } from "./config";
+
 export interface PlatformFeeInfo {
   /** Fee in basis points as configured via PLATFORM_FEE_BPS. */
   feeBps: number;
@@ -24,28 +26,20 @@ export interface PlatformFeeInfo {
   recipient: string | null;
 }
 
-/** Default fee: 10 basis points = 0.1%. */
-const DEFAULT_FEE_BPS = 10;
-
 /**
  * Returns the currently configured platform fee in basis points.
- * Reads PLATFORM_FEE_BPS from the environment at call time so it picks up
- * changes made via Vercel dashboard without a redeployment.
+ * Delegates to getConfig() so the value is read at call time.
  */
 export function getPlatformFeeBps(): number {
-  const raw = process.env.PLATFORM_FEE_BPS;
-  if (!raw) return DEFAULT_FEE_BPS;
-  const parsed = parseInt(raw, 10);
-  if (isNaN(parsed) || parsed < 0) return DEFAULT_FEE_BPS;
-  return parsed;
+  return getConfig().platformFeeBps;
 }
 
 /**
  * Returns the configured fee recipient address, or null when unset.
- * Operators set this via the PLATFORM_FEE_RECIPIENT environment variable.
+ * Delegates to getConfig() so the value is read at call time.
  */
 export function getPlatformFeeRecipient(): string | null {
-  return process.env.PLATFORM_FEE_RECIPIENT ?? null;
+  return getConfig().platformFeeRecipient;
 }
 
 /**

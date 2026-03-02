@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     totalUsers: 142,
     totalRequests: 48721,
     totalVolume: "$12,450,000",
-    activeAggregators: ["1inch", "0x Protocol", "Paraswap", "Uniswap"],
+    activeAggregators: ["1inch", "0x Protocol", "ParaSwap", "Uniswap"],
     topPairs: [
       { pair: "ETH/USDC", volume: "$4,200,000", requests: 18420 },
       { pair: "WBTC/ETH", volume: "$2,800,000", requests: 12150 },

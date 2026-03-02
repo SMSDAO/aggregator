@@ -16,7 +16,7 @@ export default function Home() {
           </span>
         </h1>
         <p className="relative z-10 max-w-2xl text-lg md:text-xl text-gray-400 mb-10">
-          Compare quotes from 1inch, 0x Protocol, Paraswap, and Uniswap in a
+          Compare quotes from 1inch, 0x Protocol, ParaSwap, and Uniswap in a
           single API call. Get the best price every time — with flash loan
           support built in.
         </p>
@@ -100,7 +100,7 @@ export default function Home() {
               {
                 step: "2",
                 title: "Parallel aggregator queries",
-                desc: "The library fans out requests to 1inch, 0x, Paraswap, and Uniswap simultaneously.",
+                desc: "The library fans out requests to 1inch, 0x, ParaSwap, and Uniswap simultaneously.",
               },
               {
                 step: "3",
