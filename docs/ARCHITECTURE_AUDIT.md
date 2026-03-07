@@ -52,7 +52,7 @@ aggregator/
 ├── LICENSE                               # MIT
 ├── README.md
 ├── next.config.mjs                       # Empty Next.js config (defaults only)
-├── package.json                          # 4 runtime deps, 7 dev deps
+├── package.json                          # 4 runtime deps, 8 dev deps
 ├── package-lock.json
 ├── postcss.config.mjs
 ├── tailwind.config.ts
