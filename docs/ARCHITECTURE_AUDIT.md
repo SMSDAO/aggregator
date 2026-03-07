@@ -322,7 +322,7 @@ src/app/api/
 
 | Location | Issue |
 |----------|-------|
-| `src/lib/aggregators/index.ts` — `getUniswapQuote()` | Throws `Error("Uniswap integration is not yet implemented")` at runtime; callers catch it and return `null`, so it fails silently |
+| `src/lib/aggregators/index.ts` — `getUniswapQuote()` | Throws `Error("Uniswap integration is not yet implemented")` at runtime; when invoked via `getQuotes()` the call is wrapped in `Promise.allSettled`, rejected results are filtered out, and the original Uniswap diagnostic is not propagated, typically surfacing only as the generic “No quotes available…” message |
 | `src/lib/aggregators/cross-chain.ts` — `getLifiQuote()`, `getSocketQuote()`, `getSquidQuote()` | Return **hardcoded simulated data** (not real API calls); no user-visible error |
 | `src/app/api/swap/route.ts` | Returns `data: "0x"` (empty calldata); any attempt to broadcast this transaction will fail on-chain |
 | `src/app/api/admin/stats/route.ts` | Returns completely hardcoded statistics; `_demo: true` flag is present but not exposed to the UI |
