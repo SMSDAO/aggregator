@@ -359,23 +359,16 @@ ESLint 9 introduced the flat config system, and some combinations of Next.js / `
 
 ### 6.1 ESLint / Lint-on-Build
 
-Next.js runs ESLint during `npm run build` by default. While the current `eslint` and `eslint-config-next` versions appear compatible per `package-lock.json`, misconfiguration (for example, mixing legacy and flat config styles or using incompatible plugins) can still surface ESLint errors that **block the build** depending on the severity setting.
+Next.js runs ESLint during `npm run build` by default. The current `eslint@9.39.3` and `eslint-config-next@16.1.6` are **version-compatible** (`eslint-config-next` peers on `eslint: >=9.0.0`), so there is no inherent peer-dependency mismatch in this repository.
 
-**Reproduction:**
+However, ESLint 9 introduced a flat config system, and mixing the legacy `.eslintrc.json` style with new plugins or configs added during the AI/Web3 migration could surface configuration errors. Run the linter before and after each migration phase to catch issues early:
+
 ```bash
 npm run lint
-# Observe and record any ESLint configuration, plugin, or peer-dependency errors (if any).
+# Observe and record any ESLint configuration, plugin, or peer-dependency errors.
 ```
 
-**Fix options (choose one):**
-```jsonc
-// option A — downgrade ESLint in package.json
-"eslint": "^8.57.0"
-
-// option B — skip ESLint during build (temporary workaround)
-// next.config.mjs
-export default { eslint: { ignoreDuringBuilds: true } };
-```
+If ESLint errors appear after adding new packages, consider adopting a flat config (`eslint.config.mjs`) and removing `.eslintrc.json`.
 
 ### 6.2 TypeScript Strict-Mode Type Errors When Adding New Modules
 
@@ -534,20 +527,32 @@ The following environment variables must be set before the platform can function
 
 ### 8.2 `vercel.json` Configuration Issues
 
+The current `vercel.json`:
+
 ```json
 {
   "framework": "nextjs",
   "buildCommand": "npm run build",
+  "outputDirectory": ".next",
   "devCommand": "npm run dev",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "env": {
+    "ADMIN_TOKEN": "@admin-token"
+  }
 }
 ```
 
-The `vercel.json` references no environment variables directly (they are injected via the Vercel dashboard). However:
+The file already declares `outputDirectory` and an `env` section that maps `ADMIN_TOKEN` to a Vercel secret. However, it is incomplete for the new AI/Web3 platform:
 
-1. **No `env` section** — New required variables (`OPENAI_API_KEY`, `REDIS_URL`, etc.) are not declared, so there is no self-documenting contract for the deployment pipeline.
-2. **No `functions` section** — AI inference routes may exceed the default 10-second serverless function timeout. Routes that call OpenAI should declare `maxDuration: 30` (or 60 for Pro plans).
-3. **No `rewrites` or `headers`** — Missing `Cache-Control` headers for the feed API endpoint will result in no edge caching.
+1. **Incomplete `env` section** — Only `ADMIN_TOKEN` is declared. New required variables (`OPENAI_API_KEY`, `REDIS_URL`, `GITHUB_TOKEN`, `NEYNAR_API_KEY`, `ETH_RPC_URL`, etc.) must be added to this section (referencing Vercel secrets) so the deployment pipeline is self-documenting and operators know exactly which secrets to provision.
+2. **No `functions` section** — AI inference routes may exceed the default 10-second serverless function timeout. Routes that call OpenAI should declare `maxDuration: 30` (or 60 on Pro plans):
+   ```json
+   "functions": {
+     "src/app/api/feed/route.ts": { "maxDuration": 30 },
+     "src/app/api/search/route.ts": { "maxDuration": 30 }
+   }
+   ```
+3. **No `headers`** — Missing `Cache-Control` headers for the feed API endpoint will result in no edge caching.
 
 ### 8.3 No Rate Limiting on API Endpoints
 
