@@ -345,11 +345,13 @@ The following packages are **imported or required by the proposed AI/Web3 module
 
 ### 5.3 Peer-Dependency Warning
 
-`eslint-config-next@16.1.6` requires `eslint@^7 || ^8` but `package.json` specifies `eslint@9.39.3`. ESLint 9 introduced a flat config system that `eslint-config-next` versions below `~15.3` do not support. This will cause **lint failures** (`npm run lint`) until either:
+In this repository, `package-lock.json` shows `eslint-config-next@16.1.6` declaring a peer dependency of `eslint: >=9.0.0`, which is compatible with the configured `eslint@9.39.3`. There is therefore **no inherent peer-dependency mismatch** between these two packages in the current setup.
 
-- `eslint` is downgraded to `^8.x`, **or**  
-- `eslint-config-next` is upgraded to a version with ESLint 9 support, **or**  
-- A flat config (`eslint.config.mjs`) is adopted and `.eslintrc.json` is removed.
+ESLint 9 introduced the flat config system, and some combinations of Next.js / `eslint-config-next` / project config can still surface configuration or runtime issues when running `npm run lint` or `npm run build`. If you observe ESLint-related errors (e.g., config parsing failures, missing config, or plugin resolution issues), consider:
+
+- Aligning `eslint` and `eslint-config-next` with the version matrix recommended by your Next.js version, **or**  
+- Adopting a flat config (`eslint.config.mjs`) and migrating away from `.eslintrc.*` where appropriate, **or**  
+- Adjusting or replacing third-party ESLint presets/plugins that are not compatible with ESLint 9.
 
 ---
 
@@ -357,12 +359,12 @@ The following packages are **imported or required by the proposed AI/Web3 module
 
 ### 6.1 ESLint / Lint-on-Build
 
-Next.js runs ESLint during `npm run build` by default. The ESLint 9 / `eslint-config-next` version mismatch described in §5.3 will produce errors or warnings that can **block the build** depending on the severity setting.
+Next.js runs ESLint during `npm run build` by default. While the current `eslint` and `eslint-config-next` versions appear compatible per `package-lock.json`, misconfiguration (for example, mixing legacy and flat config styles or using incompatible plugins) can still surface ESLint errors that **block the build** depending on the severity setting.
 
 **Reproduction:**
 ```bash
 npm run lint
-# Expected: ESLint version mismatch warning or flat-config parse error
+# Observe and record any ESLint configuration, plugin, or peer-dependency errors (if any).
 ```
 
 **Fix options (choose one):**
