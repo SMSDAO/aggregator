@@ -387,7 +387,7 @@ If ESLint errors appear after adding new packages, consider adopting a flat conf
 
 ### 6.3 Server-Only Dependencies in Client Components
 
-All interactive pages use `"use client"` directives. If any new AI/Web3 connector module is accidentally imported into a client component, Next.js will attempt to bundle Node.js-only packages (`ioredis`, `@octokit/rest`, `viem` node transport) for the browser and the build will fail with:
+Interactive pages that require client-side behavior (for example, `src/app/admin/page.tsx` and `src/app/register/page.tsx`) use `"use client"` directives, while core routing pages like `src/app/page.tsx` and `src/app/docs/page.tsx` remain server components. If any new AI/Web3 connector module is accidentally imported into a client component, Next.js will attempt to bundle Node.js-only packages (`ioredis`, `@octokit/rest`, `viem` node transport) for the browser and the build will fail with:
 
 ```
 Error: The edge runtime does not support Node.js 'net' module
