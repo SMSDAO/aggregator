@@ -25,7 +25,7 @@
 
 ## 1. Executive Summary
 
-The repository is a **production-ready DeFi DEX aggregator** built on Next.js 16 (App Router) and TypeScript. It aggregates swap quotes from 1inch, 0x, and ParaSwap, handles cross-chain bridge routing, and provides flash-loan comparisons — all behind a developer-registration API-key layer backed by Neon/Supabase PostgreSQL.
+The repository is a **DeFi DEX aggregator codebase** built on Next.js 16 (App Router) and TypeScript. It aggregates swap quotes from 1inch, 0x, and ParaSwap, with cross-chain bridge routing currently stubbed/simulated, and provides flash-loan comparisons — alongside a developer-registration system that issues API keys backed by Neon/Supabase PostgreSQL, but does not yet enforce those keys on most swap/quote endpoints.
 
 The stated new purpose is an **AI/Web3 content-feed aggregator**: a platform that ingests signals from GitHub, RSS feeds, Web3 on-chain events, and social networks; processes them through AI ranking/summarisation; and exposes a unified, personalised feed to consumers.
 
