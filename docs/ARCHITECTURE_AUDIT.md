@@ -85,9 +85,9 @@ aggregator/
         ├── platform-fee.ts               # BPS fee calculation
         ├── store.ts                      # In-memory + factory
         ├── store-pg.ts                   # Neon/Supabase PostgreSQL store
-        └── aggregators/
-            ├── index.ts                  # Quote fan-out (1inch, 0x, ParaSwap, Uniswap stub)
-            └── cross-chain.ts            # Bridge stubs (Li.Fi, Socket, Squid)
+        ├── aggregators/
+        │   ├── index.ts                  # Quote fan-out (1inch, 0x, ParaSwap, Uniswap stub)
+        │   └── cross-chain.ts            # Bridge stubs (Li.Fi, Socket, Squid)
         └── flashloan/
             └── index.ts                  # Flash loan provider comparison
 ```
