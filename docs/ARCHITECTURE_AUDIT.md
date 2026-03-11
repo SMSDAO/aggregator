@@ -456,8 +456,7 @@ Error: The edge runtime does not support Node.js 'net' module
 "@testing-library/jest-dom": "^6.x",
 "ts-jest": "^29.x",
 
-// ESLint fix
-"eslint": "^8.57.0"                 // or upgrade eslint-config-next
+// ESLint (ensure version stays peer-compatible with eslint-config-next; current eslint@9.39.3 is acceptable)
 ```
 
 ### 7.4 Database Schema Gaps
