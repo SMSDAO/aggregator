@@ -393,7 +393,7 @@ Interactive pages that require client-side behavior (for example, `src/app/admin
 Error: The edge runtime does not support Node.js 'net' module
 ```
 
-**Prevention:** Keep all connector and cache code under `src/lib/` (server-only) and never import it directly from `"use client"` components. Use Next.js Server Actions or API routes as the boundary.
+**Prevention:** Treat `src/lib/` as the home for server-focused connector and cache code, but do not rely on directory placement alone to enforce server-only behavior. Mark truly server-only modules explicitly (for example by adding `import "server-only"` or using `.server.ts` entrypoints) and ensure they are only accessed via Server Actions or API routes, never imported directly from `"use client"` components.
 
 ### 6.4 Missing `flashloan/` Directory Type Export
 
