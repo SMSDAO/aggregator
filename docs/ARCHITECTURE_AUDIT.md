@@ -663,7 +663,7 @@ API routes that should be key-gated (`/api/feed`, `/api/sources`, `/api/search`)
 - [ ] Update `src/lib/index.ts` — remove DeFi exports
 - [ ] Update `src/lib/config.ts` — add new env-var declarations
 - [ ] Update `.env.example` — remove DEX vars, add AI/Web3/social vars
-- [ ] Fix ESLint version mismatch (downgrade to `^8.57.0` or update config)
+- [ ] Verify ESLint 9 configuration (`eslint@9.39.3` + `eslint-config-next@16.1.6`); add ESLint 9 legacy-config bridge or adjust config only if linting errors occur
 - [ ] Extend `scripts/migrate.sql` with new tables
 
 ### Phase 2 — Core Infrastructure (3–5 days)
