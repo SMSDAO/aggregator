@@ -92,9 +92,9 @@ aggregator/
             └── index.ts                  # Flash loan provider comparison
 ```
 
-**Total source files:** 23  
-**Test files:** 0 (no test framework configured)  
-**Documentation files:** 1 (README.md); no `docs/` directory existed before this audit
+**Total source files (pre-audit):** 23  
+**Test files (pre-audit):** 0 (no test framework configured)  
+**Documentation files (pre-audit):** 1 (README.md); no `docs/` directory existed prior to this report
 
 ---
 
