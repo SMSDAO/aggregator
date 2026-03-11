@@ -150,7 +150,7 @@ src/lib/ai/
 **Missing dependencies:**
 - `openai` — OpenAI SDK (GPT-4o, embeddings)  
 - `@ai-sdk/openai` or `ai` (Vercel AI SDK) — streaming support  
-- `pgvector` driver extension — vector similarity search in PostgreSQL
+- PostgreSQL database extension `pgvector` — enable vector similarity search in PostgreSQL
 
 **Missing environment variables:**
 - `OPENAI_API_KEY`
