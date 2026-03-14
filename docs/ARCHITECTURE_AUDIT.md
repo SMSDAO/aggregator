@@ -38,7 +38,7 @@ The stated new purpose is an **AI/Web3 content-feed aggregator**: a platform tha
 - The `getConfig()` / `validateConfig()` environment-config helpers  
 - The `fetchWithRetry` HTTP wrapper  
 
-**Risk level of the transformation: HIGH.** All DeFi-specific business logic must be replaced; seven new functional modules are needed from scratch; and several production dependencies (`openai`, `redis`, `viem`/`ethers`, a social SDK, an RSS parser, an Octokit GitHub client) are entirely absent from `package.json`.
+**Risk level of the transformation: HIGH.** All DeFi-specific business logic must be replaced; eight new functional modules are needed from scratch; and several production dependencies (`openai`, `redis`, `viem`/`ethers`, a social SDK, an RSS parser, an Octokit GitHub client) are entirely absent from `package.json`.
 
 ---
 
@@ -334,10 +334,12 @@ The following packages are **imported or required by the proposed AI/Web3 module
 | Package | Purpose | Required by |
 |---------|---------|-------------|
 | `openai` | AI completions & embeddings | AI processing module |
-| `@ai-sdk/openai` | Vercel AI SDK streaming | AI processing module |
+| `@ai-sdk/openai` | Vercel AI SDK provider | AI processing module |
+| `ai` | Vercel AI SDK core (streaming) | AI processing module |
 | `ioredis` / `@upstash/redis` | Cache layer | Caching module |
 | `viem` | Ethereum client | Web3 connector |
-| `@octokit/rest` | GitHub API | GitHub connector |
+| `@octokit/rest` | GitHub REST API | GitHub connector |
+| `@octokit/graphql` | GitHub GraphQL API | GitHub connector |
 | `rss-parser` | RSS/Atom feed parsing | RSS connector |
 | `@neynar/nodejs-sdk` | Farcaster API | Social connector |
 | `@lens-protocol/client` | Lens Protocol | Social connector |
@@ -423,7 +425,8 @@ Error: The edge runtime does not support Node.js 'net' module
 ```jsonc
 // AI
 "openai": "^4.x",
-"ai": "^3.x",                       // Vercel AI SDK (optional)
+"@ai-sdk/openai": "^1.x",          // Vercel AI SDK provider
+"ai": "^3.x",                       // Vercel AI SDK core (streaming)
 
 // Caching
 "@upstash/redis": "^1.x",           // or "ioredis": "^5.x" for self-hosted
