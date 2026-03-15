@@ -2,18 +2,23 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/docs", label: "Docs" },
-  { href: "/register", label: "Register" },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/users", label: "Users" },
   { href: "/admin", label: "Admin" },
+  { href: "/developer", label: "Developer" },
+  { href: "/settings", label: "Settings" },
+  { href: "/docs", label: "Docs" },
 ];
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!open) return;
@@ -29,31 +34,49 @@ export default function NavBar() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [open]);
 
+  function isActive(href: string) {
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+  }
+
   return (
     <nav className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="font-bold text-white text-lg">
+        <Link href="/" className="font-bold text-white text-lg flex-shrink-0">
           ⚡ DEX Aggregator
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden sm:flex items-center gap-6 text-sm text-gray-400">
+        <div className="hidden lg:flex items-center gap-1 text-sm">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="hover:text-white transition-colors"
+              className={`px-3 py-1.5 rounded-md transition-colors ${
+                isActive(link.href)
+                  ? "bg-indigo-600/20 text-indigo-300 border border-indigo-500/30"
+                  : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+              }`}
+              aria-current={isActive(link.href) ? "page" : undefined}
             >
               {link.label}
             </Link>
           ))}
         </div>
 
+        {/* Register CTA (desktop) */}
+        <Link
+          href="/register"
+          className="hidden lg:block flex-shrink-0 ml-4 px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors"
+        >
+          Get API Key
+        </Link>
+
         {/* Mobile hamburger */}
         <button
           ref={hamburgerRef}
           type="button"
-          className="sm:hidden p-2 text-gray-400 hover:text-white transition-colors"
+          className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           aria-controls="mobile-menu"
@@ -73,17 +96,29 @@ export default function NavBar() {
 
       {/* Mobile menu */}
       {open && (
-        <div id="mobile-menu" ref={menuRef} className="sm:hidden border-t border-gray-800 bg-gray-950 px-4 py-3 space-y-1">
+        <div id="mobile-menu" ref={menuRef} className="lg:hidden border-t border-gray-800 bg-gray-950 px-4 py-3 space-y-1">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="block text-sm text-gray-400 hover:text-white py-2 transition-colors"
+              className={`block text-sm py-2 px-3 rounded-md transition-colors ${
+                isActive(link.href)
+                  ? "bg-indigo-600/20 text-indigo-300"
+                  : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+              }`}
+              aria-current={isActive(link.href) ? "page" : undefined}
               onClick={() => setOpen(false)}
             >
               {link.label}
             </Link>
           ))}
+          <Link
+            href="/register"
+            className="block text-sm py-2 px-3 mt-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-center transition-colors"
+            onClick={() => setOpen(false)}
+          >
+            Get API Key
+          </Link>
         </div>
       )}
     </nav>
