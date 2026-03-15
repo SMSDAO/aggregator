@@ -1,12 +1,14 @@
 {
   "name": "aggregator",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint src",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
@@ -15,13 +17,18 @@
     "react-dom": "^18"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "9.39.3",
     "eslint-config-next": "16.1.6",
+    "jest": "^30.3.0",
+    "jest-environment-node": "^30.3.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "ts-jest": "^29.4.6",
     "typescript": "^5"
   }
 }
