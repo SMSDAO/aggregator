@@ -5,21 +5,69 @@ import type { NextRequest } from "next/server";
  * Next.js Edge middleware.
  *
  * Responsibilities:
- *  1. Apply security headers on all responses.
- *  2. Basic in-edge rate limiting for API routes (via sliding window counter
- *     stored in response headers — a lightweight signal; production should
- *     use a Redis-backed store like Vercel KV).
+ *  1. Apply security headers on all responses (including 429 rate-limit
+ *     responses — achieved via the shared `applySecurityHeaders` helper).
+ *  2. Basic in-edge rate limiting for API routes using a per-instance
+ *     in-memory Map keyed by IP address.
+ *
+ * ⚠ Rate-limiting caveat: this store is per-Edge-instance and ephemeral.
+ * Under Vercel's globally-distributed edge network each instance maintains
+ * its own counter, so the effective limit is per-instance, not globally
+ * enforced across all regions. For strict global enforcement, replace with a
+ * shared backing store such as Vercel KV or Upstash Redis.
  */
 
 // Routes that should NOT apply security headers (e.g., internal Next.js routes)
 const SKIP_HEADERS = ["/_next/", "/favicon.ico"];
 
 // Simple in-memory rate limiter (edge runtime): keyed by IP.
-// In a real deployment use Vercel KV / Upstash Redis for persistence across
-// invocations, as edge function memory is ephemeral.
+// Entries are pruned whenever a new request arrives from an IP whose window
+// has already expired, preventing unbounded Map growth under sustained load
+// from many unique IPs.
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
 const RATE_LIMIT_MAX = 60; // 60 requests per minute per IP for API routes
+
+/**
+ * Applies a shared set of security headers to the given `Headers` object.
+ * Called on every outgoing response — including 429 rate-limit responses —
+ * so the same header policy is enforced uniformly.
+ */
+function applySecurityHeaders(headers: Headers): void {
+  headers.set("X-Frame-Options", "DENY");
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  // X-XSS-Protection is deprecated and ignored by modern browsers; omitting
+  // it avoids triggering legacy XSS-auditor behaviour in older browsers.
+  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  headers.set(
+    "Strict-Transport-Security",
+    "max-age=63072000; includeSubDomains; preload"
+  );
+  headers.set(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      // 'unsafe-inline' is required by Next.js for its inline style/script
+      // injection. 'unsafe-eval' has been removed to tighten XSS protection.
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob:",
+      "font-src 'self' data:",
+      "connect-src 'self' https://api.1inch.dev https://api.0x.org https://api.paraswap.io",
+      "frame-ancestors 'none'",
+    ].join("; ")
+  );
+}
+
+/** Removes expired entries from the rate-limit store to cap memory usage. */
+function pruneExpiredEntries(now: number): void {
+  for (const [ip, record] of rateLimitStore) {
+    if (now > record.resetAt) {
+      rateLimitStore.delete(ip);
+    }
+  }
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -33,6 +81,10 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith("/api/")) {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
     const now = Date.now();
+
+    // Opportunistically prune expired entries on each API request.
+    pruneExpiredEntries(now);
+
     const record = rateLimitStore.get(ip);
 
     if (!record || now > record.resetAt) {
@@ -40,45 +92,25 @@ export function middleware(request: NextRequest) {
     } else {
       record.count += 1;
       if (record.count > RATE_LIMIT_MAX) {
-        return new NextResponse(JSON.stringify({ error: "Too many requests. Please retry after 1 minute." }), {
-          status: 429,
-          headers: {
-            "Content-Type": "application/json",
-            "Retry-After": "60",
-            "X-RateLimit-Limit": String(RATE_LIMIT_MAX),
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": String(Math.ceil(record.resetAt / 1000)),
-          },
+        const tooManyHeaders = new Headers({
+          "Content-Type": "application/json",
+          "Retry-After": "60",
+          "X-RateLimit-Limit": String(RATE_LIMIT_MAX),
+          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Reset": String(Math.ceil(record.resetAt / 1000)),
         });
+        // Apply the same security headers to 429 responses.
+        applySecurityHeaders(tooManyHeaders);
+        return new NextResponse(
+          JSON.stringify({ error: "Too many requests. Please retry after 1 minute." }),
+          { status: 429, headers: tooManyHeaders }
+        );
       }
     }
   }
 
   const response = NextResponse.next();
-
-  // Security headers
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set("X-XSS-Protection", "1; mode=block");
-  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  response.headers.set(
-    "Strict-Transport-Security",
-    "max-age=63072000; includeSubDomains; preload"
-  );
-  response.headers.set(
-    "Content-Security-Policy",
-    [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob:",
-      "font-src 'self' data:",
-      "connect-src 'self' https://api.1inch.dev https://api.0x.org https://api.paraswap.io",
-      "frame-ancestors 'none'",
-    ].join("; ")
-  );
-
+  applySecurityHeaders(response.headers);
   return response;
 }
 

@@ -93,10 +93,11 @@ export default function SettingsPage() {
                 };
                 return (
                   <div key={key} className="flex items-center justify-between py-2">
-                    <span className="text-sm text-gray-300">{labels[key]}</span>
+                    <span id={`switch-label-${key}`} className="text-sm text-gray-300">{labels[key]}</span>
                     <button
                       role="switch"
                       aria-checked={notifications[key]}
+                      aria-labelledby={`switch-label-${key}`}
                       onClick={() => setNotifications((prev) => ({ ...prev, [key]: !prev[key] }))}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                         notifications[key] ? "bg-indigo-600" : "bg-gray-700"

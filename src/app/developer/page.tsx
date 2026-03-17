@@ -80,6 +80,7 @@ export default function DeveloperPage() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
+              id={`dev-tab-${tab.id}`}
               role="tab"
               aria-selected={activeTab === tab.id}
               aria-controls={`dev-panel-${tab.id}`}
@@ -97,7 +98,7 @@ export default function DeveloperPage() {
 
         {/* API Monitoring */}
         {activeTab === "monitoring" && (
-          <div id="dev-panel-monitoring" role="tabpanel">
+          <div id="dev-panel-monitoring" role="tabpanel" aria-labelledby="dev-tab-monitoring">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               {[
                 { label: "Total Requests (24h)", value: MOCK_ENDPOINTS.reduce((a, e) => a + e.requests, 0).toLocaleString() },
@@ -152,7 +153,7 @@ export default function DeveloperPage() {
 
         {/* Log Viewer */}
         {activeTab === "logs" && (
-          <div id="dev-panel-logs" role="tabpanel">
+          <div id="dev-panel-logs" role="tabpanel" aria-labelledby="dev-tab-logs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <h2 className="font-semibold text-lg">Application Logs</h2>
               <select
@@ -186,7 +187,7 @@ export default function DeveloperPage() {
 
         {/* Environment Management */}
         {activeTab === "env" && (
-          <div id="dev-panel-env" role="tabpanel">
+          <div id="dev-panel-env" role="tabpanel" aria-labelledby="dev-tab-env">
             <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
               <h2 className="font-semibold text-lg mb-2">Environment Variables</h2>
               <p className="text-sm text-gray-500 mb-6">
@@ -221,7 +222,7 @@ export default function DeveloperPage() {
 
         {/* Deployment Diagnostics */}
         {activeTab === "deploy" && (
-          <div id="dev-panel-deploy" role="tabpanel">
+          <div id="dev-panel-deploy" role="tabpanel" aria-labelledby="dev-tab-deploy">
             <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
               <h2 className="font-semibold text-lg mb-6">Deployment Diagnostics</h2>
               <div className="space-y-3">

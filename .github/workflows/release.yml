@@ -20,7 +20,6 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          DATABASE_URL: ""
           ADMIN_TOKEN: "release-build"
           PLATFORM_FEE_BPS: "10"
       - name: Create GitHub Release

@@ -32,8 +32,10 @@ jobs:
     permissions:
       contents: read
     env:
-      # Provide dummy values so the build can run without real secrets
-      DATABASE_URL: ""
+      # Provide dummy values so the build can run without real secrets.
+      # DATABASE_URL is intentionally omitted so the app uses the in-memory
+      # fallback store, matching the "unset" code path rather than the
+      # "set but invalid" code path that an empty string would trigger.
       ADMIN_TOKEN: "ci-token"
       PLATFORM_FEE_BPS: "10"
     steps:
@@ -71,4 +73,4 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm audit --audit-level=high || true
+      - run: npm audit --audit-level=high
