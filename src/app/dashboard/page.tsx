@@ -57,6 +57,7 @@ export default function DashboardPage() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
+              id={`dash-tab-${tab.id}`}
               role="tab"
               aria-selected={activeTab === tab.id}
               aria-controls={`panel-${tab.id}`}
@@ -79,7 +80,7 @@ export default function DashboardPage() {
 
         {/* Overview Tab */}
         {activeTab === "overview" && (
-          <div id="panel-overview" role="tabpanel">
+          <div id="panel-overview" role="tabpanel" aria-labelledby="dash-tab-overview">
             {/* Stat cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {[
@@ -174,7 +175,7 @@ export default function DashboardPage() {
 
         {/* Activity Tab */}
         {activeTab === "activity" && (
-          <div id="panel-activity" role="tabpanel">
+          <div id="panel-activity" role="tabpanel" aria-labelledby="dash-tab-activity">
             <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
               <h2 className="font-semibold text-lg mb-4">API Activity Log</h2>
               <div className="space-y-2">
@@ -208,7 +209,7 @@ export default function DashboardPage() {
 
         {/* Notifications Tab */}
         {activeTab === "notifications" && (
-          <div id="panel-notifications" role="tabpanel">
+          <div id="panel-notifications" role="tabpanel" aria-labelledby="dash-tab-notifications">
             <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
               <h2 className="font-semibold text-lg mb-4">Notifications</h2>
               <div className="space-y-3">
@@ -239,7 +240,7 @@ export default function DashboardPage() {
 
         {/* Settings Tab */}
         {activeTab === "settings" && (
-          <div id="panel-settings" role="tabpanel">
+          <div id="panel-settings" role="tabpanel" aria-labelledby="dash-tab-settings">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Account info */}
               <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6 space-y-4">

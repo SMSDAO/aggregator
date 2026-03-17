@@ -43,9 +43,6 @@ const mockNextResponse = {
   next: jest.fn(),
 };
 
-// Each test resets these
-let lastNextResponse: MockResponse | null = null;
-
 jest.mock("next/server", () => {
   return {
     NextResponse: class MockNextResponse {
@@ -83,7 +80,6 @@ jest.mock("next/server", () => {
         } else {
           this.headers = makeHeaders((h as Record<string, string>) ?? {});
         }
-        lastNextResponse = this;
       }
 
       static next() {
@@ -91,7 +87,6 @@ jest.mock("next/server", () => {
           status: 200,
           headers: makeHeaders(),
         };
-        lastNextResponse = res;
         mockNextResponse.next();
         return res;
       }

@@ -14,7 +14,8 @@ The Meta DEX Aggregator is a Next.js 16 (App Router) application that aggregates
                            │ HTTP / REST
 ┌──────────────────────────▼──────────────────────────────────┐
 │                  Next.js Edge Middleware                      │
-│  Security headers · Rate limiting (60 req/min/IP)            │
+│  Security headers · Rate limiting (60 req/min/IP, per-instance)│
+│  ⚠ In-memory limiter — use KV/Redis for global enforcement    │
 └──────────────────────────┬──────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────┐

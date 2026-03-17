@@ -56,6 +56,10 @@ function applySecurityHeaders(headers: Headers): void {
       "font-src 'self' data:",
       "connect-src 'self' https://api.1inch.dev https://api.0x.org https://api.paraswap.io",
       "frame-ancestors 'none'",
+      // Harden against plugin-based attacks and base-tag hijacking.
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
     ].join("; ")
   );
 }

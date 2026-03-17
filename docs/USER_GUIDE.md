@@ -61,3 +61,5 @@ Upgrade via the [Dashboard → Account Settings](/dashboard) tab or contact us f
 ### 5. Rate Limiting
 
 The API enforces a limit of **60 requests per minute per IP**. If you exceed this, you will receive a `429 Too Many Requests` response with a `Retry-After: 60` header.
+
+> **Note:** The rate limiter runs in-memory within each Edge instance. Under Vercel's globally-distributed deployment, each region/instance maintains its own counter, so the effective limit is per-instance rather than globally enforced. For strict global rate limiting in production, consider a shared backing store such as Vercel KV or Upstash Redis.

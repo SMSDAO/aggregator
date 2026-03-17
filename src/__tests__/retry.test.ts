@@ -1,12 +1,16 @@
 import { fetchWithRetry } from "@/lib/retry";
 
-// Mock global fetch for retry tests
-const mockFetch = jest.fn();
-global.fetch = mockFetch as unknown as typeof fetch;
+// Mock global fetch for retry tests using jest.spyOn so the original is
+// automatically restored after each test suite, preventing leakage.
+const mockFetch = jest.spyOn(global, "fetch");
 
 describe("fetchWithRetry", () => {
   beforeEach(() => {
     mockFetch.mockReset();
+  });
+
+  afterAll(() => {
+    mockFetch.mockRestore();
   });
 
   it("returns response on first successful call", async () => {
