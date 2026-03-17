@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function SettingsPage() {
   const [notifications, setNotifications] = useState({
@@ -10,10 +10,25 @@ export default function SettingsPage() {
     securityAlerts: true,
   });
   const [saved, setSaved] = useState(false);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (savedTimerRef.current !== null) {
+        clearTimeout(savedTimerRef.current);
+      }
+    };
+  }, []);
 
   function handleSave() {
+    if (savedTimerRef.current !== null) {
+      clearTimeout(savedTimerRef.current);
+    }
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    savedTimerRef.current = setTimeout(() => {
+      setSaved(false);
+      savedTimerRef.current = null;
+    }, 2000);
   }
 
   return (

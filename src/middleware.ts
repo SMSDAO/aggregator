@@ -21,12 +21,12 @@ import type { NextRequest } from "next/server";
 const SKIP_HEADERS = ["/_next/", "/favicon.ico"];
 
 // Simple in-memory rate limiter (edge runtime): keyed by IP.
-// Entries are pruned whenever a new request arrives from an IP whose window
-// has already expired, preventing unbounded Map growth under sustained load
-// from many unique IPs.
+// Expired entries are pruned when the store grows beyond a threshold to
+// prevent unbounded Map growth without incurring O(n) cost on every request.
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
 const RATE_LIMIT_MAX = 60; // 60 requests per minute per IP for API routes
+const PRUNE_THRESHOLD = 1000; // prune only when store exceeds this size
 
 /**
  * Applies a shared set of security headers to the given `Headers` object.
@@ -60,8 +60,12 @@ function applySecurityHeaders(headers: Headers): void {
   );
 }
 
-/** Removes expired entries from the rate-limit store to cap memory usage. */
+/** Removes expired entries from the rate-limit store to cap memory usage.
+ *  Only runs when the store exceeds PRUNE_THRESHOLD to keep per-request
+ *  overhead bounded under high-cardinality traffic.
+ */
 function pruneExpiredEntries(now: number): void {
+  if (rateLimitStore.size <= PRUNE_THRESHOLD) return;
   for (const [ip, record] of rateLimitStore) {
     if (now > record.resetAt) {
       rateLimitStore.delete(ip);
@@ -79,32 +83,40 @@ export function middleware(request: NextRequest) {
 
   // Apply rate limiting on API routes
   if (pathname.startsWith("/api/")) {
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    // Prefer the platform-provided IP, then fall back to forwarded headers.
+    // If no IP can be determined, skip rate limiting to avoid collapsing all
+    // clients into the same "unknown" bucket.
+    const ip =
+      (request as unknown as { ip?: string }).ip ??
+      request.headers.get("x-real-ip") ??
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
     const now = Date.now();
 
     // Opportunistically prune expired entries on each API request.
     pruneExpiredEntries(now);
 
-    const record = rateLimitStore.get(ip);
+    if (ip) {
+      const record = rateLimitStore.get(ip);
 
-    if (!record || now > record.resetAt) {
-      rateLimitStore.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    } else {
-      record.count += 1;
-      if (record.count > RATE_LIMIT_MAX) {
-        const tooManyHeaders = new Headers({
-          "Content-Type": "application/json",
-          "Retry-After": "60",
-          "X-RateLimit-Limit": String(RATE_LIMIT_MAX),
-          "X-RateLimit-Remaining": "0",
-          "X-RateLimit-Reset": String(Math.ceil(record.resetAt / 1000)),
-        });
-        // Apply the same security headers to 429 responses.
-        applySecurityHeaders(tooManyHeaders);
-        return new NextResponse(
-          JSON.stringify({ error: "Too many requests. Please retry after 1 minute." }),
-          { status: 429, headers: tooManyHeaders }
-        );
+      if (!record || now > record.resetAt) {
+        rateLimitStore.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+      } else {
+        record.count += 1;
+        if (record.count > RATE_LIMIT_MAX) {
+          const tooManyHeaders = new Headers({
+            "Content-Type": "application/json",
+            "Retry-After": "60",
+            "X-RateLimit-Limit": String(RATE_LIMIT_MAX),
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(Math.ceil(record.resetAt / 1000)),
+          });
+          // Apply the same security headers to 429 responses.
+          applySecurityHeaders(tooManyHeaders);
+          return new NextResponse(
+            JSON.stringify({ error: "Too many requests. Please retry after 1 minute." }),
+            { status: 429, headers: tooManyHeaders }
+          );
+        }
       }
     }
   }

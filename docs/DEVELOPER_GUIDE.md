@@ -37,7 +37,7 @@ npm run test:coverage# Jest with coverage report
 
 ## API Reference
 
-All endpoints return JSON. No API key is required unless noted.
+All endpoints return JSON. Most public endpoints do not require authentication; admin endpoints require an `Authorization: Bearer <ADMIN_TOKEN>` header. See per-endpoint notes below.
 
 ### GET/POST `/api/quote`
 
@@ -110,21 +110,28 @@ Returns application health and configuration warnings. No auth required.
 
 Requires `Authorization: Bearer <ADMIN_TOKEN>` header.
 
-## TypeScript SDK
+## Calling the API with TypeScript (fetch)
+
+The following example shows how to call the `/api/quote` endpoint directly with the native `fetch` API — no additional SDK is required.
 
 ```typescript
-import { getQuotes } from "@dex-aggregator/sdk";
+async function getBestQuote() {
+  const res = await fetch("https://your-deployment.vercel.app/api/quote", {
+    method: "POST",
+    body: JSON.stringify({
+      fromToken: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+      toToken:   "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      amount:    "1000000000000000000", // 1 ETH in wei
+      chainId:   1,
+    }),
+  });
 
-const best = await getQuotes({
-  fromToken: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-  toToken:   "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-  amount:    "1000000000000000000", // 1 ETH in wei
-  chainId:   1,
-});
+  if (!res.ok) throw new Error(`Quote failed: ${res.status}`);
+  const data = await res.json();
 
-console.log(`Best: ${best.aggregator}`);
-console.log(`You receive: ${best.toAmount} USDC`);
-console.log(`Savings vs worst: ${best.savingsPercent.toFixed(2)}%`);
+  console.log(`Best aggregator: ${data.aggregator}`);
+  console.log(`You receive: ${data.toAmount} USDC`);
+}
 ```
 
 ## Testing

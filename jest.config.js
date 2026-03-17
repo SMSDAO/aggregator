@@ -1,6 +1,5 @@
-import type { Config } from "jest";
-
-const config: Config = {
+/** @type {import('jest').Config} */
+const config = {
   testEnvironment: "node",
   transform: {
     "^.+\\.tsx?$": ["ts-jest", { tsconfig: { module: "commonjs" } }],
@@ -12,4 +11,4 @@ const config: Config = {
   collectCoverageFrom: ["src/lib/**/*.ts", "src/app/api/**/*.ts"],
 };
 
-export default config;
+module.exports = config;
