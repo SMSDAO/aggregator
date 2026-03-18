@@ -69,7 +69,9 @@ class InMemoryRegistrationStore implements RegistrationStore {
   }
 
   async listRecent(limit: number): Promise<ApiKey[]> {
-    const clampedLimit = Math.max(0, limit);
+    const clampedLimit = Number.isFinite(limit)
+      ? Math.max(0, Math.min(Math.trunc(limit), MAX_RECENT_LIMIT))
+      : 0;
     return Array.from(this.map.values())
       .sort(
         (a, b) =>

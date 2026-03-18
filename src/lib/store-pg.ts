@@ -88,7 +88,9 @@ export class PostgresRegistrationStore implements RegistrationStore {
   }
 
   async listRecent(limit: number): Promise<ApiKey[]> {
-    const clampedLimit = Math.max(0, Math.min(limit, MAX_RECENT_LIMIT));
+    const clampedLimit = Number.isFinite(limit)
+      ? Math.max(0, Math.min(Math.trunc(limit), MAX_RECENT_LIMIT))
+      : 0;
     const rows = (await this.sql`
       SELECT
         key, name, email, plan, requests,
