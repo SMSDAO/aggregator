@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { AdminStats } from "@/lib";
+import { getConfig } from "@/lib/config";
+import { registrationStore } from "@/lib/store";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -15,41 +17,32 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const stats: AdminStats = {
-    totalUsers: 142,
-    totalRequests: 48721,
-    totalVolume: "$12,450,000",
-    activeAggregators: ["1inch", "0x Protocol", "ParaSwap", "Uniswap"],
-    topPairs: [
-      { pair: "ETH/USDC", volume: "$4,200,000", requests: 18420 },
-      { pair: "WBTC/ETH", volume: "$2,800,000", requests: 12150 },
-      { pair: "ETH/DAI", volume: "$1,950,000", requests: 9870 },
-      { pair: "USDC/USDT", volume: "$1,100,000", requests: 5280 },
-      { pair: "ETH/WBTC", volume: "$980,000", requests: 3001 },
-    ],
-    recentRegistrations: [
-      {
-        key: "agg_demo_placeholder",
-        name: "Alice Chen",
-        email: "alice@defi.io",
-        projectName: "YieldFarm Pro",
-        useCase: "Yield optimization",
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        requests: 1240,
-        plan: "pro",
-      },
-      {
-        key: "agg_demo_placeholder_2",
-        name: "Bob Smith",
-        email: "bob@web3.dev",
-        projectName: "ArbiBot",
-        useCase: "Arbitrage trading",
-        createdAt: new Date(Date.now() - 172800000).toISOString(),
-        requests: 520,
-        plan: "free",
-      },
-    ],
-  };
+  try {
+    const cfg = getConfig();
+    const allKeys = await registrationStore.listAll();
 
-  return NextResponse.json({ ...stats, _demo: true });
+    const totalUsers = allKeys.length;
+    const totalRequests = allKeys.reduce((sum, k) => sum + k.requests, 0);
+
+    const activeAggregators: string[] = ["ParaSwap"];
+    if (cfg.oneInchApiKey) activeAggregators.unshift("1inch");
+    if (cfg.zeroExApiKey) activeAggregators.push("0x Protocol");
+
+    const recentRegistrations = allKeys.slice(0, 20);
+
+    const stats: AdminStats = {
+      totalUsers,
+      totalRequests,
+      totalVolume: "0",
+      activeAggregators,
+      topPairs: [],
+      recentRegistrations,
+    };
+
+    return NextResponse.json(stats);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

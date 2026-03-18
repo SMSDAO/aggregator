@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - PLATFORM_FEE_BPS=${PLATFORM_FEE_BPS:-10}
+      - PLATFORM_FEE_RECIPIENT=${PLATFORM_FEE_RECIPIENT}
+      - ONEINCH_API_KEY=${ONEINCH_API_KEY}
+      - ZEROX_API_KEY=${ZEROX_API_KEY}
+    restart: unless-stopped

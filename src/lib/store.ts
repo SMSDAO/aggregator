@@ -23,6 +23,8 @@ export interface RegistrationStore {
   findByEmail(email: string): Promise<ApiKey | undefined>;
   findByKey(key: string): Promise<ApiKey | undefined>;
   save(apiKey: ApiKey): Promise<void>;
+  /** Returns all registered API keys, newest first. */
+  listAll(): Promise<ApiKey[]>;
 }
 
 /**
@@ -45,6 +47,12 @@ class InMemoryRegistrationStore implements RegistrationStore {
 
   async save(apiKey: ApiKey): Promise<void> {
     this.map.set(apiKey.key, apiKey);
+  }
+
+  async listAll(): Promise<ApiKey[]> {
+    return Array.from(this.map.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   }
 }
 

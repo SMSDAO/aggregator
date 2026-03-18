@@ -73,4 +73,16 @@ export class PostgresRegistrationStore implements RegistrationStore {
         plan       = EXCLUDED.plan
     `;
   }
+
+  async listAll(): Promise<ApiKey[]> {
+    const rows = (await this.sql`
+      SELECT
+        key, name, email, plan, requests,
+        project_name  AS "projectName",
+        use_case      AS "useCase",
+        created_at    AS "createdAt"
+      FROM api_keys ORDER BY created_at DESC
+    `) as Record<string, unknown>[];
+    return rows as unknown as ApiKey[];
+  }
 }
