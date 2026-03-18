@@ -24,6 +24,8 @@ export interface StoreStats {
   totalRequests: number;
 }
 
+export const MAX_RECENT_LIMIT = 1000;
+
 export interface RegistrationStore {
   findByEmail(email: string): Promise<ApiKey | undefined>;
   findByKey(key: string): Promise<ApiKey | undefined>;
@@ -57,20 +59,23 @@ class InMemoryRegistrationStore implements RegistrationStore {
   }
 
   async getStats(): Promise<StoreStats> {
-    const values = Array.from(this.map.values());
-    return {
-      totalUsers: values.length,
-      totalRequests: values.reduce((sum, k) => sum + k.requests, 0),
-    };
+    let totalUsers = 0;
+    let totalRequests = 0;
+    for (const k of this.map.values()) {
+      totalUsers += 1;
+      totalRequests += k.requests;
+    }
+    return { totalUsers, totalRequests };
   }
 
   async listRecent(limit: number): Promise<ApiKey[]> {
+    const clampedLimit = Math.max(0, limit);
     return Array.from(this.map.values())
       .sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )
-      .slice(0, limit);
+      .slice(0, clampedLimit);
   }
 }
 

@@ -14,6 +14,7 @@
  */
 import { neon } from "@neondatabase/serverless";
 import type { ApiKey } from "./types";
+import { MAX_RECENT_LIMIT } from "./store";
 import type { RegistrationStore, StoreStats } from "./store";
 
 export class PostgresRegistrationStore implements RegistrationStore {
@@ -87,13 +88,14 @@ export class PostgresRegistrationStore implements RegistrationStore {
   }
 
   async listRecent(limit: number): Promise<ApiKey[]> {
+    const clampedLimit = Math.max(0, Math.min(limit, MAX_RECENT_LIMIT));
     const rows = (await this.sql`
       SELECT
         key, name, email, plan, requests,
         project_name  AS "projectName",
         use_case      AS "useCase",
         created_at    AS "createdAt"
-      FROM api_keys ORDER BY created_at DESC LIMIT ${limit}
+      FROM api_keys ORDER BY created_at DESC LIMIT ${clampedLimit}
     `) as Record<string, unknown>[];
     return rows as unknown as ApiKey[];
   }
