@@ -5,7 +5,8 @@ import { registrationStore } from "@/lib/store";
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  const adminToken = process.env.ADMIN_TOKEN;
+  const cfg = getConfig();
+  const adminToken = cfg.adminToken;
   if (!adminToken) {
     return NextResponse.json(
       { error: "Admin access is not configured" },
@@ -18,17 +19,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const cfg = getConfig();
-    const allKeys = await registrationStore.listAll();
-
-    const totalUsers = allKeys.length;
-    const totalRequests = allKeys.reduce((sum, k) => sum + k.requests, 0);
+    const { totalUsers, totalRequests } = await registrationStore.getStats();
+    const recentRegistrations = await registrationStore.listRecent(20);
 
     const activeAggregators: string[] = ["ParaSwap"];
     if (cfg.oneInchApiKey) activeAggregators.unshift("1inch");
     if (cfg.zeroExApiKey) activeAggregators.push("0x Protocol");
-
-    const recentRegistrations = allKeys.slice(0, 20);
 
     const stats: AdminStats = {
       totalUsers,

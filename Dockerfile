@@ -6,7 +6,8 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --frozen-lockfile
+# npm ci already enforces package-lock.json consistency — no extra flags needed
+RUN npm ci
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2 — builder: compile the Next.js application
@@ -21,6 +22,8 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
+# Ensure public dir exists (may be absent if the project has no static assets)
+RUN mkdir -p /app/public
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 3 — runner: minimal production image
@@ -35,7 +38,7 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser  --system --uid 1001 nextjs
 
 # Copy only the files required at runtime
-COPY --from=builder /app/public       ./public        2>/dev/null || true
+COPY --from=builder --chown=nextjs:nodejs /app/public               ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static     ./.next/static
 

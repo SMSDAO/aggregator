@@ -19,12 +19,19 @@ import type { ApiKey } from "./types";
  *   3. Add it as DATABASE_URL in your Vercel project environment variables.
  *   4. Run: psql $DATABASE_URL -f scripts/migrate.sql
  */
+export interface StoreStats {
+  totalUsers: number;
+  totalRequests: number;
+}
+
 export interface RegistrationStore {
   findByEmail(email: string): Promise<ApiKey | undefined>;
   findByKey(key: string): Promise<ApiKey | undefined>;
   save(apiKey: ApiKey): Promise<void>;
-  /** Returns all registered API keys, newest first. */
-  listAll(): Promise<ApiKey[]>;
+  /** Returns aggregate counts without loading all rows into memory. */
+  getStats(): Promise<StoreStats>;
+  /** Returns the most recently registered keys, newest first. */
+  listRecent(limit: number): Promise<ApiKey[]>;
 }
 
 /**
@@ -49,10 +56,21 @@ class InMemoryRegistrationStore implements RegistrationStore {
     this.map.set(apiKey.key, apiKey);
   }
 
-  async listAll(): Promise<ApiKey[]> {
-    return Array.from(this.map.values()).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+  async getStats(): Promise<StoreStats> {
+    const values = Array.from(this.map.values());
+    return {
+      totalUsers: values.length,
+      totalRequests: values.reduce((sum, k) => sum + k.requests, 0),
+    };
+  }
+
+  async listRecent(limit: number): Promise<ApiKey[]> {
+    return Array.from(this.map.values())
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      .slice(0, limit);
   }
 }
 

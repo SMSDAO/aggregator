@@ -14,7 +14,7 @@
  */
 import { neon } from "@neondatabase/serverless";
 import type { ApiKey } from "./types";
-import type { RegistrationStore } from "./store";
+import type { RegistrationStore, StoreStats } from "./store";
 
 export class PostgresRegistrationStore implements RegistrationStore {
   private readonly sql: ReturnType<typeof neon>;
@@ -74,14 +74,26 @@ export class PostgresRegistrationStore implements RegistrationStore {
     `;
   }
 
-  async listAll(): Promise<ApiKey[]> {
+  async getStats(): Promise<StoreStats> {
+    const rows = (await this.sql`
+      SELECT COUNT(*) AS "totalUsers", COALESCE(SUM(requests), 0) AS "totalRequests"
+      FROM api_keys
+    `) as Record<string, unknown>[];
+    const row = rows[0] ?? {};
+    return {
+      totalUsers: Number(row.totalUsers ?? 0),
+      totalRequests: Number(row.totalRequests ?? 0),
+    };
+  }
+
+  async listRecent(limit: number): Promise<ApiKey[]> {
     const rows = (await this.sql`
       SELECT
         key, name, email, plan, requests,
         project_name  AS "projectName",
         use_case      AS "useCase",
         created_at    AS "createdAt"
-      FROM api_keys ORDER BY created_at DESC
+      FROM api_keys ORDER BY created_at DESC LIMIT ${limit}
     `) as Record<string, unknown>[];
     return rows as unknown as ApiKey[];
   }
