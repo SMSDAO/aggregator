@@ -2,34 +2,75 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: ["**"]
   pull_request:
-    branches: [main]
+    branches: ["main"]
+
+# Default to read-only permissions for all jobs.
+permissions:
+  contents: read
 
 jobs:
-  ci:
-    name: Install · Lint · Typecheck · Build
+  lint-typecheck:
+    name: Lint & Type-check
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
 
-      - name: Install dependencies
-        run: npm ci
+  build:
+    name: Next.js Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      # Provide dummy values so the build can run without real secrets.
+      # DATABASE_URL is intentionally omitted so the app uses the in-memory
+      # fallback store, matching the "unset" code path rather than the
+      # "set but invalid" code path that an empty string would trigger.
+      ADMIN_TOKEN: "ci-token"
+      PLATFORM_FEE_BPS: "10"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
 
-      - name: Lint
-        run: npm run lint
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test -- --passWithNoTests
 
-      - name: Typecheck
-        run: npx tsc --noEmit
-
-      - name: Build
-        run: npm run build
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=high
