@@ -142,7 +142,6 @@ describe("middleware", () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require("../middleware");
     middlewareFn = mod.middleware;
-    lastNextResponse = null;
     mockNextResponse.next.mockClear();
   });
 
