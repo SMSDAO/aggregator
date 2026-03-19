@@ -163,7 +163,7 @@ export default function AdminPage() {
                 <tbody>
                   {stats.recentRegistrations.map((r) => (
                     <tr
-                      key={`${r.email}-${r.createdAt}`}
+                      key={r.email}
                       className="border-b border-gray-800/50 hover:bg-gray-800/30"
                     >
                       <td className="py-2 pr-4">

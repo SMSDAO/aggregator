@@ -72,12 +72,12 @@ class InMemoryRegistrationStore implements RegistrationStore {
     const clampedLimit = Number.isFinite(limit)
       ? Math.max(0, Math.min(Math.trunc(limit), MAX_RECENT_LIMIT))
       : 0;
-    return Array.from(this.map.values())
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
-      .slice(0, clampedLimit);
+    // The map key is always a unique `agg_`-prefixed random string generated
+    // at registration time (see /api/register).  Because the interface exposes
+    // no `delete()` method, the map is strictly append-only, so insertion order
+    // equals creation order.  Reversing is therefore equivalent to ORDER BY
+    // created_at DESC but avoids the O(n log n) comparison sort.
+    return Array.from(this.map.values()).reverse().slice(0, clampedLimit);
   }
 }
 

@@ -99,6 +99,25 @@ export class PostgresRegistrationStore implements RegistrationStore {
         created_at    AS "createdAt"
       FROM api_keys ORDER BY created_at DESC LIMIT ${clampedLimit}
     `) as Record<string, unknown>[];
-    return rows as unknown as ApiKey[];
+    return rows.map((row) => {
+      const rawPlan = String(row.plan ?? "free");
+      const validPlans: ApiKey["plan"][] = ["free", "pro", "enterprise"];
+      const plan: ApiKey["plan"] = (validPlans as string[]).includes(rawPlan)
+        ? (rawPlan as ApiKey["plan"])
+        : "free";
+      return {
+        key: String(row.key),
+        name: String(row.name),
+        email: String(row.email),
+        plan,
+        requests: Number(row.requests),
+        projectName: String(row.projectName),
+        useCase: String(row.useCase),
+        createdAt:
+          row.createdAt instanceof Date
+            ? row.createdAt.toISOString()
+            : String(row.createdAt),
+      };
+    });
   }
 }
