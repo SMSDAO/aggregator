@@ -60,6 +60,9 @@ class InMemoryRegistrationStore implements RegistrationStore {
 
   async save(apiKey: ApiKey): Promise<void> {
     if (!this.map.has(apiKey.key)) {
+      // New key: record insertion order for recency lookups.
+      // Re-saves of the same key (e.g., request-count increment) intentionally
+      // do NOT move the entry — recency reflects first-registration time.
       this.insertionOrder.push(apiKey.key);
       // Trim the deque to the cap so memory stays bounded.
       if (this.insertionOrder.length > MAX_RECENT_LIMIT) {
