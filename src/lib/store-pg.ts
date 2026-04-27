@@ -13,7 +13,7 @@
  *   psql $DATABASE_URL -f scripts/migrate.sql
  */
 import { neon } from "@neondatabase/serverless";
-import type { ApiKey } from "./types";
+import type { ApiKey, RecentRegistration } from "./types";
 import { MAX_RECENT_LIMIT } from "./store";
 import type { RegistrationStore, StoreStats } from "./store";
 
@@ -87,13 +87,13 @@ export class PostgresRegistrationStore implements RegistrationStore {
     };
   }
 
-  async listRecent(limit: number): Promise<ApiKey[]> {
+  async listRecent(limit: number): Promise<RecentRegistration[]> {
     const clampedLimit = Number.isFinite(limit)
       ? Math.max(0, Math.min(Math.trunc(limit), MAX_RECENT_LIMIT))
       : 0;
+    // key is intentionally excluded — the return type never carries the secret.
     const rows = (await this.sql`
-      SELECT
-        key, name, email, plan, requests,
+      SELECT name, email, plan, requests,
         project_name  AS "projectName",
         use_case      AS "useCase",
         created_at    AS "createdAt"
@@ -106,7 +106,6 @@ export class PostgresRegistrationStore implements RegistrationStore {
         ? (rawPlan as ApiKey["plan"])
         : "free";
       return {
-        key: String(row.key),
         name: String(row.name),
         email: String(row.email),
         plan,

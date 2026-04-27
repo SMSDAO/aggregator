@@ -1,4 +1,4 @@
-import type { ApiKey } from "./types";
+import type { ApiKey, RecentRegistration } from "./types";
 
 /**
  * Storage interface for developer registrations.
@@ -32,8 +32,8 @@ export interface RegistrationStore {
   save(apiKey: ApiKey): Promise<void>;
   /** Returns aggregate counts without loading all rows into memory. */
   getStats(): Promise<StoreStats>;
-  /** Returns the most recently registered keys, newest first. */
-  listRecent(limit: number): Promise<ApiKey[]>;
+  /** Returns the most recently registered keys, newest first. Never includes the secret key field. */
+  listRecent(limit: number): Promise<RecentRegistration[]>;
 }
 
 /**
@@ -45,6 +45,10 @@ export interface RegistrationStore {
  */
 class InMemoryRegistrationStore implements RegistrationStore {
   private readonly map = new Map<string, ApiKey>();
+  // Insertion-ordered list of API key strings for O(k) recent lookups.
+  // Bounded at MAX_RECENT_LIMIT; the oldest entry is dropped from the front
+  // when the cap is reached so memory stays bounded.
+  private readonly insertionOrder: string[] = [];
 
   async findByEmail(email: string): Promise<ApiKey | undefined> {
     return Array.from(this.map.values()).find((r) => r.email === email);
@@ -55,6 +59,13 @@ class InMemoryRegistrationStore implements RegistrationStore {
   }
 
   async save(apiKey: ApiKey): Promise<void> {
+    if (!this.map.has(apiKey.key)) {
+      this.insertionOrder.push(apiKey.key);
+      // Trim the deque to the cap so memory stays bounded.
+      if (this.insertionOrder.length > MAX_RECENT_LIMIT) {
+        this.insertionOrder.shift();
+      }
+    }
     this.map.set(apiKey.key, apiKey);
   }
 
@@ -68,16 +79,25 @@ class InMemoryRegistrationStore implements RegistrationStore {
     return { totalUsers, totalRequests };
   }
 
-  async listRecent(limit: number): Promise<ApiKey[]> {
+  async listRecent(limit: number): Promise<RecentRegistration[]> {
     const clampedLimit = Number.isFinite(limit)
       ? Math.max(0, Math.min(Math.trunc(limit), MAX_RECENT_LIMIT))
       : 0;
-    // The map key is always a unique `agg_`-prefixed random string generated
-    // at registration time (see /api/register).  Because the interface exposes
-    // no `delete()` method, the map is strictly append-only, so insertion order
-    // equals creation order.  Reversing is therefore equivalent to ORDER BY
-    // created_at DESC but avoids the O(n log n) comparison sort.
-    return Array.from(this.map.values()).reverse().slice(0, clampedLimit);
+    // Walk insertionOrder in reverse (newest first) and collect up to clampedLimit
+    // sanitized records.  O(k) where k = clampedLimit.
+    const result: RecentRegistration[] = [];
+    for (
+      let i = this.insertionOrder.length - 1;
+      i >= 0 && result.length < clampedLimit;
+      i--
+    ) {
+      const entry = this.map.get(this.insertionOrder[i]);
+      if (entry) {
+        const { key: _key, ...rest } = entry;
+        result.push(rest);
+      }
+    }
+    return result;
   }
 }
 

@@ -20,9 +20,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const { totalUsers, totalRequests } = await registrationStore.getStats();
-    const recentRows = await registrationStore.listRecent(20);
-    // Strip the secret API key before sending to the browser.
-    const recentRegistrations = recentRows.map(({ key: _key, ...rest }) => rest);
+    // listRecent() now returns RecentRegistration[] — the secret key is never
+    // included, so no extra stripping is required here.
+    const recentRegistrations = await registrationStore.listRecent(20);
 
     const activeAggregators: string[] = ["ParaSwap"];
     if (cfg.oneInchApiKey) activeAggregators.unshift("1inch");
