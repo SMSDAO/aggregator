@@ -13,8 +13,9 @@
  *   psql $DATABASE_URL -f scripts/migrate.sql
  */
 import { neon } from "@neondatabase/serverless";
-import type { ApiKey } from "./types";
-import type { RegistrationStore } from "./store";
+import type { ApiKey, RecentRegistration } from "./types";
+import { clampRecentLimit } from "./store";
+import type { RegistrationStore, StoreStats } from "./store";
 
 export class PostgresRegistrationStore implements RegistrationStore {
   private readonly sql: ReturnType<typeof neon>;
@@ -72,5 +73,48 @@ export class PostgresRegistrationStore implements RegistrationStore {
         requests   = EXCLUDED.requests,
         plan       = EXCLUDED.plan
     `;
+  }
+
+  async getStats(): Promise<StoreStats> {
+    const rows = (await this.sql`
+      SELECT COUNT(*) AS "totalUsers", COALESCE(SUM(requests), 0) AS "totalRequests"
+      FROM api_keys
+    `) as Record<string, unknown>[];
+    const row = rows[0] ?? {};
+    return {
+      totalUsers: Number(row.totalUsers ?? 0),
+      totalRequests: Number(row.totalRequests ?? 0),
+    };
+  }
+
+  async listRecent(limit: number): Promise<RecentRegistration[]> {
+    const clampedLimit = clampRecentLimit(limit);
+    // key is intentionally excluded — the return type never carries the secret.
+    const rows = (await this.sql`
+      SELECT name, email, plan, requests,
+        project_name  AS "projectName",
+        use_case      AS "useCase",
+        created_at    AS "createdAt"
+      FROM api_keys ORDER BY created_at DESC LIMIT ${clampedLimit}
+    `) as Record<string, unknown>[];
+    return rows.map((row) => {
+      const rawPlan = String(row.plan ?? "free");
+      const validPlans: ApiKey["plan"][] = ["free", "pro", "enterprise"];
+      const plan: ApiKey["plan"] = (validPlans as string[]).includes(rawPlan)
+        ? (rawPlan as ApiKey["plan"])
+        : "free";
+      return {
+        name: String(row.name),
+        email: String(row.email),
+        plan,
+        requests: Number(row.requests),
+        projectName: String(row.projectName),
+        useCase: String(row.useCase),
+        createdAt:
+          row.createdAt instanceof Date
+            ? row.createdAt.toISOString()
+            : String(row.createdAt),
+      };
+    });
   }
 }

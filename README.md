@@ -199,13 +199,20 @@ console.log(`Fee: ${flashLoan.best.feePercent}%`);
 
 ## Deployment
 
-Deploy to Vercel with a single click:
+### Deploy to Vercel (one click)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SMSDAO/aggregator&project-name=meta-dex-aggregator&repository-name=aggregator-demo&demo-title=Meta%20DEX%20Aggregator&demo-description=Production-ready%20DEX%20aggregator%20with%20live%20admin%20stats%2C%20Docker%20support%20%26%20CI)
+
+**After import, add these environment variables in Vercel → Settings → Environment Variables:**
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ADMIN_TOKEN` | ✅ | Bearer token for the `/api/admin/stats` endpoint |
+| `DATABASE_URL` | ✅ | Postgres connection string (e.g. from Neon or Supabase) |
+| `ONEINCH_API_KEY` | optional | Enables 1inch quotes |
+| `ZEROX_API_KEY` | optional | Enables 0x Protocol quotes |
 
 Or use the included `vercel.json` configuration for manual deployment.
-
-Set the `ADMIN_TOKEN` environment variable for admin dashboard access.
 
 ## Pages
 
