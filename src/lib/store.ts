@@ -26,13 +26,25 @@ export interface StoreStats {
 
 export const MAX_RECENT_LIMIT = 1000;
 
+/**
+ * Sanitizes and clamps a raw `limit` argument for `listRecent()`.
+ * - Non-finite values (NaN, ±Infinity) → 0
+ * - Floats → truncated toward zero
+ * - Result clamped to [0, MAX_RECENT_LIMIT]
+ */
+export function clampRecentLimit(limit: number): number {
+  return Number.isFinite(limit)
+    ? Math.max(0, Math.min(Math.trunc(limit), MAX_RECENT_LIMIT))
+    : 0;
+}
+
 export interface RegistrationStore {
   findByEmail(email: string): Promise<ApiKey | undefined>;
   findByKey(key: string): Promise<ApiKey | undefined>;
   save(apiKey: ApiKey): Promise<void>;
   /** Returns aggregate counts without loading all rows into memory. */
   getStats(): Promise<StoreStats>;
-  /** Returns the most recently registered keys, newest first. Never includes the secret key field. */
+  /** Returns the most recently registered records, newest first, with the secret `key` field omitted. */
   listRecent(limit: number): Promise<RecentRegistration[]>;
 }
 
@@ -46,8 +58,9 @@ export interface RegistrationStore {
 class InMemoryRegistrationStore implements RegistrationStore {
   private readonly map = new Map<string, ApiKey>();
   // Insertion-ordered list of API key strings for O(k) recent lookups.
-  // Bounded at MAX_RECENT_LIMIT; the oldest entry is dropped from the front
-  // when the cap is reached so memory stays bounded.
+  // Only this index is bounded at MAX_RECENT_LIMIT; the backing `map` grows
+  // without bound.  The oldest entry is dropped from the front when the cap
+  // is reached so the recency index stays bounded.
   private readonly insertionOrder: string[] = [];
 
   async findByEmail(email: string): Promise<ApiKey | undefined> {
@@ -83,9 +96,7 @@ class InMemoryRegistrationStore implements RegistrationStore {
   }
 
   async listRecent(limit: number): Promise<RecentRegistration[]> {
-    const clampedLimit = Number.isFinite(limit)
-      ? Math.max(0, Math.min(Math.trunc(limit), MAX_RECENT_LIMIT))
-      : 0;
+    const clampedLimit = clampRecentLimit(limit);
     // Walk insertionOrder in reverse (newest first) and collect up to clampedLimit
     // sanitized records.  O(k) where k = clampedLimit.
     const result: RecentRegistration[] = [];

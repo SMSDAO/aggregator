@@ -14,7 +14,7 @@
  */
 import { neon } from "@neondatabase/serverless";
 import type { ApiKey, RecentRegistration } from "./types";
-import { MAX_RECENT_LIMIT } from "./store";
+import { clampRecentLimit } from "./store";
 import type { RegistrationStore, StoreStats } from "./store";
 
 export class PostgresRegistrationStore implements RegistrationStore {
@@ -88,9 +88,7 @@ export class PostgresRegistrationStore implements RegistrationStore {
   }
 
   async listRecent(limit: number): Promise<RecentRegistration[]> {
-    const clampedLimit = Number.isFinite(limit)
-      ? Math.max(0, Math.min(Math.trunc(limit), MAX_RECENT_LIMIT))
-      : 0;
+    const clampedLimit = clampRecentLimit(limit);
     // key is intentionally excluded — the return type never carries the secret.
     const rows = (await this.sql`
       SELECT name, email, plan, requests,
