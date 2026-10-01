@@ -30,6 +30,7 @@ export type {
   AggregatorConfig,
   DeveloperRegistration,
   ApiKey,
+  RecentRegistration,
   AdminStats,
   CrossChainQuoteRequest,
   CrossChainQuoteResult,

@@ -85,7 +85,7 @@ const FLASH_LOAN_CONTRACT_ADDRESSES: Record<number, Record<string, string>> = {
 function buildFlashLoanTransaction(
   provider: FlashLoanProvider,
   chainId: number,
-  request: FlashLoanRequest
+  _request: FlashLoanRequest
 ): SwapTransaction {
   const addressesForChain =
     FLASH_LOAN_CONTRACT_ADDRESSES[chainId] ?? {};

@@ -124,13 +124,16 @@ export interface ApiKey {
   plan: 'free' | 'pro' | 'enterprise';
 }
 
+/** A sanitized registration record safe to expose in admin responses (API key omitted). */
+export type RecentRegistration = Omit<ApiKey, "key">;
+
 export interface AdminStats {
   totalUsers: number;
   totalRequests: number;
   totalVolume: string;
   activeAggregators: string[];
   topPairs: Array<{ pair: string; volume: string; requests: number }>;
-  recentRegistrations: ApiKey[];
+  recentRegistrations: RecentRegistration[];
 }
 
 /** A request to swap tokens across two different chains. */

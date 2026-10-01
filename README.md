@@ -1,5 +1,8 @@
 # Meta DEX Aggregator
 
+![CI](https://github.com/SMSDAO/aggregator/actions/workflows/ci.yml/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 An open-source meta aggregator library that provides all the benefits of DEX aggregation in a developer-friendly package — without any middlemen.
 
 ## Features
@@ -12,6 +15,23 @@ An open-source meta aggregator library that provides all the benefits of DEX agg
 - **No Middlemen** — Interacts directly with DEX aggregators, eliminating centralized intermediaries.
 - **Onchain Simulation** — Simulate swaps onchain before executing to verify accuracy, gas costs, and potential reverts.
 - **Developer API** — Free-tier API with registration; Pro and Enterprise plans available.
+- **Enterprise Dashboards** — User, Admin, and Developer dashboards with real-time metrics.
+- **Security Hardened** — Edge middleware enforcing security headers and rate limiting.
+
+## UI Preview
+
+### User Dashboard
+
+<img src="docs/assets/ui/user-dashboard.png" alt="User Dashboard — overview, metered usage, activity, and account settings" width="100%">
+
+### Admin Dashboard
+
+<img src="docs/assets/ui/admin-dashboard.png" alt="Admin Dashboard — system stats, user management, and audit controls" width="100%">
+
+### Developer Dashboard
+
+<img src="docs/assets/ui/developer-dashboard.png" alt="Developer Dashboard — API monitoring, log viewer, environment, and deployment diagnostics" width="100%">
+
 
 ## Quick Start
 
@@ -179,22 +199,46 @@ console.log(`Fee: ${flashLoan.best.feePercent}%`);
 
 ## Deployment
 
-Deploy to Vercel with a single click:
+### Deploy to Vercel (one click)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SMSDAO/aggregator&project-name=meta-dex-aggregator&repository-name=aggregator-demo&demo-title=Meta%20DEX%20Aggregator&demo-description=Production-ready%20DEX%20aggregator%20with%20live%20admin%20stats%2C%20Docker%20support%20%26%20CI)
+
+**After import, add these environment variables in Vercel → Settings → Environment Variables:**
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ADMIN_TOKEN` | ✅ | Bearer token for the `/api/admin/stats` endpoint |
+| `DATABASE_URL` | ✅ | Postgres connection string (e.g. from Neon or Supabase) |
+| `ONEINCH_API_KEY` | optional | Enables 1inch quotes |
+| `ZEROX_API_KEY` | optional | Enables 0x Protocol quotes |
 
 Or use the included `vercel.json` configuration for manual deployment.
-
-Set the `ADMIN_TOKEN` environment variable for admin dashboard access.
 
 ## Pages
 
 | Route | Description |
 |-------|-------------|
 | `/` | Landing page with feature overview and live demo |
+| `/dashboard` | User dashboard — overview, activity, notifications, account settings |
+| `/users` | Registered users with role/plan filters |
+| `/admin` | Admin dashboard — stats, top pairs, recent registrations (requires admin token) |
+| `/developer` | Developer dashboard — API monitoring, logs, environment, deployment diagnostics |
+| `/settings` | User settings — profile, API key management, notifications |
 | `/docs` | Full API and SDK documentation |
 | `/register` | Developer registration and API key generation |
-| `/admin` | Admin dashboard (requires admin token) |
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) — system design, module map
+- [Deployment](docs/DEPLOYMENT.md) — Vercel, self-hosted, local dev
+- [Environment Variables](docs/ENVIRONMENT.md) — complete reference
+- [User Guide](docs/USER_GUIDE.md) — registration, API usage, dashboard
+- [Admin Guide](docs/ADMIN_GUIDE.md) — admin auth, stats API, RBAC roles
+- [Developer Guide](docs/DEVELOPER_GUIDE.md) — SDK, API reference, testing
+
+## Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md) for full release history.
 
 ## License
 
